@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,6 +43,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     // Исключения безопасности, брошенные уже внутри контроллера или сервиса,
     // не должны превращаться в 500 в общем обработчике ниже.
+    // Сбой при проверке учётных данных (например, недоступна база) — ошибка сервера, а не клиента.
+    @ExceptionHandler(InternalAuthenticationServiceException.class)
+    public ResponseEntity<ErrorDto> handleAuthenticationFailure(InternalAuthenticationServiceException ex) {
+        return handleUnexpected(ex);
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorDto> handleAuthentication(AuthenticationException ex) {
         return error(HttpStatus.UNAUTHORIZED, "Authentication is required");

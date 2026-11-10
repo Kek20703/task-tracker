@@ -21,9 +21,9 @@ public class AppUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        return userService.findByEmail(email)
-                .map(user -> User.withUsername(user.getEmail())
-                        .password(user.getPassword())
+        return userService.findCredentialsByEmail(email)
+                .map(credentials -> User.withUsername(credentials.email())
+                        .password(credentials.passwordHash())
                         .roles(ROLE_USER)
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

@@ -6,8 +6,8 @@ import com.tasktracker.backend.dto.RegisterRequest;
 import com.tasktracker.backend.dto.UserResponse;
 import com.tasktracker.backend.exception.InvalidCredentialsException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,12 +34,12 @@ public class AuthService {
             // для существующего и несуществующего email.
             authenticationManager.authenticate(
                     UsernamePasswordAuthenticationToken.unauthenticated(request.email(), request.password()));
-        } catch (AuthenticationException e) {
+        } catch (BadCredentialsException e) {
+            // Ловится только «неверный email или пароль». Остальное (например, недоступная база)
+            // — не вина пользователя и должно дойти до обработчика как ошибка сервера.
             throw new InvalidCredentialsException();
         }
-        UserResponse user = userService.findByEmail(request.email())
-                .map(found -> new UserResponse(found.getId(), found.getEmail()))
-                .orElseThrow(InvalidCredentialsException::new);
+        UserResponse user = userService.findByEmail(request.email()).orElseThrow(InvalidCredentialsException::new);
         return withToken(user);
     }
 

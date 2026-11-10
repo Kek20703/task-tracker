@@ -17,7 +17,7 @@
 ## Локальный запуск инфраструктуры
 
 ```bash
-cp .env.example .env   # и задать свой POSTGRES_PASSWORD
+cp .env.example .env   # и задать свои POSTGRES_PASSWORD и JWT_SECRET
 docker compose up -d
 ```
 

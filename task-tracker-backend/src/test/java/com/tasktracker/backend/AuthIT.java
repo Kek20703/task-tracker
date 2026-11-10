@@ -1,7 +1,7 @@
 package com.tasktracker.backend;
 
 import com.tasktracker.backend.repository.UserRepository;
-import com.tasktracker.backend.service.JwtService;
+import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +10,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-
-import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -151,8 +150,7 @@ class AuthIT {
     @Test
     void expiredTokenIsUnauthorized() throws Exception {
         Long userId = registerAndGetId();
-        String expired = new JwtService(TestcontainersConfiguration.TEST_JWT_SECRET, Duration.ofMinutes(-5))
-                .issue(userId, EMAIL);
+        String expired = TestTokens.sign(TestTokens.expired(userId, EMAIL), TestcontainersConfiguration.TEST_JWT_SECRET);
 
         expectUnauthorized("Bearer " + expired);
     }
@@ -160,10 +158,48 @@ class AuthIT {
     @Test
     void tokenSignedWithAnotherSecretIsUnauthorized() throws Exception {
         Long userId = registerAndGetId();
-        String foreign = new JwtService("another-secret-0123456789-abcdefghijklmn", Duration.ofHours(1))
-                .issue(userId, EMAIL);
+        String foreign = TestTokens.sign(TestTokens.valid(userId, EMAIL), "another-secret-0123456789-abcdefghijklmn");
 
         expectUnauthorized("Bearer " + foreign);
+    }
+
+    @Test
+    void handMadeValidTokenIsAccepted() throws Exception {
+        // Контроль для тестов выше и ниже: токен из TestTokens с верным секретом действительно проходит.
+        Long userId = registerAndGetId();
+        String token = TestTokens.sign(TestTokens.valid(userId, EMAIL), TestcontainersConfiguration.TEST_JWT_SECRET);
+
+        mockMvc.perform(get("/user").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void tokenWithoutExpirationIsUnauthorized() throws Exception {
+        Long userId = registerAndGetId();
+        String eternal = TestTokens.sign(
+                Jwts.builder().subject(String.valueOf(userId)).claim("email", EMAIL),
+                TestcontainersConfiguration.TEST_JWT_SECRET);
+
+        expectUnauthorized("Bearer " + eternal);
+    }
+
+    @Test
+    void bearerSchemeIsCaseInsensitive() throws Exception {
+        String token = tokenFrom(register(EMAIL, PASSWORD)).substring("Bearer ".length());
+
+        mockMvc.perform(get("/user").header(HttpHeaders.AUTHORIZATION, "bearer " + token))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/user").header(HttpHeaders.AUTHORIZATION, "BEARER   " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    void requestAuthenticatedNotByOurTokenIsUnauthorizedNotServerError() throws Exception {
+        // Авторизация есть, но principal — не наш CurrentUser: пользователя приложения за запросом нет.
+        mockMvc.perform(get("/user"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Authentication is required"));
     }
 
     @Test

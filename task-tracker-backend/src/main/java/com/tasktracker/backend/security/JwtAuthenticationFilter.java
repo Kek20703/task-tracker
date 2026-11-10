@@ -33,7 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header != null && header.startsWith(BEARER_PREFIX)) {
+        // Название схемы по RFC 7235 не зависит от регистра: "bearer" так же допустим, как "Bearer".
+        if (header != null && header.regionMatches(true, 0, BEARER_PREFIX, 0, BEARER_PREFIX.length())) {
             jwtService.parse(header.substring(BEARER_PREFIX.length()).trim()).ifPresent(user -> {
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(

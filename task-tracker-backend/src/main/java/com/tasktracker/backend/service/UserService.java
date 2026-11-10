@@ -1,6 +1,7 @@
 package com.tasktracker.backend.service;
 
 import com.tasktracker.backend.dto.RegisterRequest;
+import com.tasktracker.backend.dto.UserCredentials;
 import com.tasktracker.backend.dto.UserResponse;
 import com.tasktracker.backend.entity.User;
 import com.tasktracker.backend.exception.AccountNotFoundException;
@@ -40,14 +41,23 @@ public class UserService {
         return toResponse(user);
     }
 
-    /** Пользователь по id из токена. Если его уже удалили, токен больше ничего не значит. */
+    /**
+     * Пользователь по id из токена. Если его уже удалили, токен больше ничего не значит.
+     * Все запросы «от имени текущего пользователя» должны начинаться с этой проверки.
+     */
     public UserResponse getById(Long id) {
         return userRepository.findById(id).map(UserService::toResponse).orElseThrow(AccountNotFoundException::new);
     }
 
     /** Поиск без учёта регистра — так же, как email сохраняется при регистрации. */
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(normalizeEmail(email));
+    public Optional<UserResponse> findByEmail(String email) {
+        return userRepository.findByEmail(normalizeEmail(email)).map(UserService::toResponse);
+    }
+
+    /** Данные для проверки пароля. Наружу из сервиса уходит запись, а не JPA-сущность. */
+    public Optional<UserCredentials> findCredentialsByEmail(String email) {
+        return userRepository.findByEmail(normalizeEmail(email))
+                .map(user -> new UserCredentials(user.getEmail(), user.getPassword()));
     }
 
     private static UserResponse toResponse(User user) {

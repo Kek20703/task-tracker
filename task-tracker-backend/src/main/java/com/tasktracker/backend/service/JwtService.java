@@ -2,6 +2,7 @@ package com.tasktracker.backend.service;
 
 import com.tasktracker.backend.dto.CurrentUser;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import java.util.Optional;
 public class JwtService {
 
     private static final int MIN_SECRET_BYTES = 32;
+    private static final String ALGORITHM = "HS256";
     private static final String EMAIL_CLAIM = "email";
 
     private final SecretKey key;
@@ -29,7 +31,11 @@ public class JwtService {
         byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
         if (secretBytes.length < MIN_SECRET_BYTES) {
             throw new IllegalStateException(
-                    "jwt.secret must be at least " + MIN_SECRET_BYTES + " bytes long, got " + secretBytes.length);
+                    "jwt.secret (JWT_SECRET) must be at least " + MIN_SECRET_BYTES + " bytes long, got "
+                            + secretBytes.length + ". Generate one with: openssl rand -hex 32");
+        }
+        if (ttl.isZero() || ttl.isNegative()) {
+            throw new IllegalStateException("jwt.ttl (JWT_TTL) must be positive, got " + ttl);
         }
         this.key = new SecretKeySpec(secretBytes, "HmacSHA256");
         this.ttl = ttl;
@@ -48,13 +54,19 @@ public class JwtService {
 
     /**
      * Возвращает пользователя из токена, если подпись верна и срок действия не истёк.
-     * Любой другой токен — чужой, просроченный, повреждённый — даёт пустой результат.
+     * Любой другой токен — чужой, просроченный, повреждённый, без срока действия — даёт пустой результат.
      */
     public Optional<CurrentUser> parse(String token) {
         try {
-            Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+            Jws<Claims> jws = Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
+            Claims claims = jws.getPayload();
             String email = claims.get(EMAIL_CLAIM, String.class);
-            if (claims.getSubject() == null || email == null) {
+            // Принимаются только токены того вида, который выпускает issue():
+            // тот же алгоритм, обязательные срок действия, id и email.
+            if (!ALGORITHM.equals(jws.getHeader().getAlgorithm())
+                    || claims.getExpiration() == null
+                    || claims.getSubject() == null
+                    || email == null) {
                 return Optional.empty();
             }
             return Optional.of(new CurrentUser(Long.valueOf(claims.getSubject()), email));
