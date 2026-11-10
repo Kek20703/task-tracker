@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: task-tracker-backend
+  datasource:
+    # Значения по умолчанию — для запуска из IDE рядом с docker compose.
+    # В контейнере переопределяются переменными SPRING_DATASOURCE_URL и т.д.
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:task_tracker}
+    username: ${POSTGRES_USER:task_tracker}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+server:
+  port: 8080

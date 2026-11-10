@@ -28,6 +28,19 @@ docker compose up -d
 | SMTP (Mailpit) | `localhost:1025` | `mailpit:1025` |
 | Пойманные письма | http://localhost:8025 | — |
 
+## Запуск backend из исходников
+
+Нужны JDK 17 и поднятая инфраструктура (см. выше). Пароль базы сервис берёт из переменной
+окружения `POSTGRES_PASSWORD` — той же, что в `.env`.
+
+```bash
+cd task-tracker-backend
+./gradlew bootRun    # сервис на http://localhost:8080
+./gradlew test       # тесты; для интеграционных нужен запущенный Docker
+```
+
+Примеры запросов — в `task-tracker-backend/http/*.http` (REST Client в IntelliJ IDEA).
+
 ## Стек
 
 Java 17, Spring Boot, Gradle, Postgres, Flyway, Kafka, Docker, GitHub Actions.
