@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Секреты и локальные настройки
+.env
+*.env.local
+http-client.private.env.json
+
+# ОС
+.DS_Store
+Thumbs.db
+
+# Логи
+*.log
