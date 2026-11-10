@@ -8,12 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -49,7 +51,6 @@ class UserRegistrationIT {
         User saved = userRepository.findByEmail("my@email.com").orElseThrow();
         assertThat(saved.getPassword()).isNotEqualTo("secret-password");
         assertThat(passwordEncoder.matches("secret-password", saved.getPassword())).isTrue();
-        assertThat(saved.getCreatedAt()).isNotNull();
     }
 
     @Test
@@ -65,6 +66,15 @@ class UserRegistrationIT {
     }
 
     @Test
+    void storesEmailInLowerCase() throws Exception {
+        register("Mixed.Case@Email.COM", "secret-password")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("mixed.case@email.com"));
+
+        assertThat(userRepository.findAll()).extracting(User::getEmail).containsExactly("mixed.case@email.com");
+    }
+
+    @Test
     void rejectsDuplicateEmailIgnoringCase() throws Exception {
         register("my@email.com", "secret-password").andExpect(status().isOk());
 
@@ -73,6 +83,21 @@ class UserRegistrationIT {
                 .andExpect(jsonPath("$.message").value("This email is already taken"));
 
         assertThat(userRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    void databaseItselfRejectsDuplicateEmailIgnoringCase() {
+        userRepository.saveAndFlush(new User("my@email.com", "hash"));
+
+        assertThatThrownBy(() -> userRepository.saveAndFlush(new User("MY@EMAIL.COM", "hash")))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void createdAtIsAvailableRightAfterSave() {
+        User saved = userRepository.saveAndFlush(new User("my@email.com", "hash"));
+
+        assertThat(saved.getCreatedAt()).isNotNull();
     }
 
     @Test
@@ -86,7 +111,41 @@ class UserRegistrationIT {
     void rejectsShortPassword() throws Exception {
         register("my@email.com", "short")
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Password must be 8 to 72 characters long"));
+                .andExpect(jsonPath("$.message").value("Password must be at least 8 characters long"));
+    }
+
+    @Test
+    void acceptsPasswordOfExactly72Bytes() throws Exception {
+        register("my@email.com", "a".repeat(72)).andExpect(status().isOk());
+    }
+
+    @Test
+    void rejectsPasswordLongerThan72Bytes() throws Exception {
+        register("my@email.com", "a".repeat(73))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Password is too long"));
+    }
+
+    @Test
+    void rejectsCyrillicPasswordThatExceeds72BytesButNot72Characters() throws Exception {
+        // 40 символов, но 80 байт в UTF-8: BCrypt такое не принимает.
+        register("my@email.com", "п".repeat(40))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Password is too long"));
+    }
+
+    @Test
+    void acceptsCyrillicPasswordWithinLimit() throws Exception {
+        register("my@email.com", "пароль-из-кириллицы").andExpect(status().isOk());
+    }
+
+    @Test
+    void rejectsEmptyJsonObject() throws Exception {
+        mockMvc.perform(post("/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Email is required; Password is required"));
     }
 
     @Test
@@ -113,7 +172,14 @@ class UserRegistrationIT {
                         .contentType(MediaType.TEXT_PLAIN)
                         .content("email=my@email.com"))
                 .andExpect(status().isUnsupportedMediaType())
-                .andExpect(jsonPath("$.message").isNotEmpty());
+                .andExpect(jsonPath("$.message").value("Unsupported Media Type"));
+    }
+
+    @Test
+    void onlyPostOnUserIsOpen() throws Exception {
+        mockMvc.perform(get("/user"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Authentication is required"));
     }
 
     @Test

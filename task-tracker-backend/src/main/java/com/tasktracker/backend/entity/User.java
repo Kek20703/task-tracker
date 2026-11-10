@@ -7,6 +7,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
+
 import java.time.Instant;
 
 @Entity
@@ -17,13 +20,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 254)
+    @Column(nullable = false, length = 254)
     private String email;
 
     /** Хеш пароля (BCrypt), не сам пароль. */
     @Column(nullable = false, length = 100)
     private String password;
 
+    /** Заполняется базой при вставке и сразу перечитывается. */
+    @Generated(event = EventType.INSERT)
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
 

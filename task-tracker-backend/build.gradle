@@ -40,3 +40,8 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.withType(JavaCompile).configureEach {
+	// На Windows с JDK 17 кодировка по умолчанию не UTF-8, а в исходниках есть кириллица.
+	options.encoding = 'UTF-8'
+}

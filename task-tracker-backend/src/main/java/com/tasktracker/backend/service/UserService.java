@@ -39,6 +39,6 @@ public class UserService {
     }
 
     private static String normalizeEmail(String email) {
-        return email.trim().toLowerCase(Locale.ROOT);
+        return email.toLowerCase(Locale.ROOT);
     }
 }

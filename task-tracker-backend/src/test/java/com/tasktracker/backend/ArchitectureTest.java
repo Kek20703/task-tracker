@@ -5,14 +5,15 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.GeneralCodingRules;
+import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
-import org.springframework.data.repository.Repository;
+import jakarta.persistence.MappedSuperclass;
+import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
-import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 /**
@@ -24,38 +25,63 @@ class ArchitectureTest {
 
     private static final String ROOT = "com.tasktracker.backend";
 
-    // --- Слои ---
+    private static final String CONTROLLER = ROOT + ".controller..";
+    private static final String SERVICE = ROOT + ".service..";
+    private static final String REPOSITORY = ROOT + ".repository..";
+    private static final String ENTITY = ROOT + ".entity..";
+    private static final String DTO = ROOT + ".dto..";
+    private static final String EXCEPTION = ROOT + ".exception..";
+    private static final String VALIDATION = ROOT + ".validation..";
+    private static final String CONFIG = ROOT + ".config..";
+    private static final String SECURITY = ROOT + ".security..";
+
+    // --- Раскладка по пакетам ---
 
     @ArchTest
-    static final ArchRule layers_are_respected = layeredArchitecture()
-            .consideringOnlyDependenciesInLayers()
-            .layer("Controller").definedBy(ROOT + ".controller..")
-            .layer("Service").definedBy(ROOT + ".service..")
-            .layer("Repository").definedBy(ROOT + ".repository..")
-            .whereLayer("Controller").mayNotBeAccessedByAnyLayer()
-            .whereLayer("Service").mayOnlyBeAccessedByLayers("Controller")
-            .whereLayer("Repository").mayOnlyBeAccessedByLayers("Service")
-            .because("запрос идёт строго сверху вниз: контроллер -> сервис -> репозиторий");
+    static final ArchRule every_class_lives_in_a_known_package = classes()
+            .that().doNotHaveFullyQualifiedName(ROOT + ".TaskTrackerBackendApplication")
+            .should().resideInAnyPackage(
+                    CONTROLLER, SERVICE, REPOSITORY, ENTITY, DTO, EXCEPTION, VALIDATION, CONFIG, SECURITY)
+            .because("правила ниже написаны для этих пакетов; класс в другом месте остался бы без проверок");
+
+    // --- Слои: запрос идёт сверху вниз, контроллер -> сервис -> репозиторий ---
 
     @ArchTest
-    static final ArchRule controllers_do_not_touch_entities_or_repositories = noClasses()
-            .that().resideInAPackage(ROOT + ".controller..")
-            .should().dependOnClassesThat().resideInAnyPackage(ROOT + ".entity..", ROOT + ".repository..")
+    static final ArchRule only_services_use_repositories = noClasses()
+            .that().resideOutsideOfPackages(SERVICE, REPOSITORY)
+            .should().dependOnClassesThat().resideInAPackage(REPOSITORY)
+            .because("к данным ходят только через сервис — в том числе из config и security");
+
+    @ArchTest
+    static final ArchRule nobody_depends_on_controllers = noClasses()
+            .that().resideOutsideOfPackage(CONTROLLER)
+            .should().dependOnClassesThat().resideInAPackage(CONTROLLER)
+            .because("контроллеры — верхний слой, их вызывает только Spring MVC");
+
+    @ArchTest
+    static final ArchRule repositories_do_not_depend_on_upper_layers = noClasses()
+            .that().resideInAPackage(REPOSITORY)
+            .should().dependOnClassesThat().resideInAnyPackage(CONTROLLER, SERVICE, DTO, CONFIG, SECURITY)
+            .because("репозиторий знает только о сущностях");
+
+    @ArchTest
+    static final ArchRule controllers_do_not_touch_entities = noClasses()
+            .that().resideInAPackage(CONTROLLER)
+            .should().dependOnClassesThat().resideInAPackage(ENTITY)
             .because("наружу отдаются только DTO, JPA-сущности не должны утекать в REST API");
 
     @ArchTest
     static final ArchRule entities_are_independent = noClasses()
-            .that().resideInAPackage(ROOT + ".entity..")
+            .that().resideInAPackage(ENTITY)
             .should().dependOnClassesThat().resideInAnyPackage(
-                    ROOT + ".controller..", ROOT + ".service..", ROOT + ".repository..",
-                    ROOT + ".dto..", ROOT + ".config..", ROOT + ".exception..")
+                    CONTROLLER, SERVICE, REPOSITORY, DTO, EXCEPTION, VALIDATION, CONFIG, SECURITY)
             .because("сущности — нижний уровень, они ничего не знают об остальном приложении");
 
     @ArchTest
     static final ArchRule dto_are_plain_data = noClasses()
-            .that().resideInAPackage(ROOT + ".dto..")
+            .that().resideInAPackage(DTO)
             .should().dependOnClassesThat().resideInAnyPackage(
-                    ROOT + ".controller..", ROOT + ".service..", ROOT + ".repository..", ROOT + ".entity..")
+                    CONTROLLER, SERVICE, REPOSITORY, ENTITY, EXCEPTION, CONFIG, SECURITY)
             .because("DTO — просто данные, преобразование из сущностей делает сервис");
 
     @ArchTest
@@ -66,27 +92,31 @@ class ArchitectureTest {
     // --- Расположение и именование ---
 
     @ArchTest
-    static final ArchRule rest_controllers_live_in_controller_package = classes()
+    static final ArchRule controllers_live_in_controller_package = classes()
             .that().areAnnotatedWith(RestController.class)
-            .should().resideInAPackage(ROOT + ".controller..")
+            .or().areAnnotatedWith(Controller.class)
+            .should().resideInAPackage(CONTROLLER)
             .andShould().haveSimpleNameEndingWith("Controller");
 
     @ArchTest
     static final ArchRule services_live_in_service_package = classes()
             .that().areAnnotatedWith(Service.class)
-            .should().resideInAPackage(ROOT + ".service..")
+            .should().resideInAPackage(SERVICE)
             .andShould().haveSimpleNameEndingWith("Service");
 
     @ArchTest
     static final ArchRule repositories_live_in_repository_package = classes()
-            .that().areAssignableTo(Repository.class)
-            .should().resideInAPackage(ROOT + ".repository..")
+            .that().areAssignableTo(org.springframework.data.repository.Repository.class)
+            .or().areAnnotatedWith(org.springframework.stereotype.Repository.class)
+            .should().resideInAPackage(REPOSITORY)
             .andShould().haveSimpleNameEndingWith("Repository");
 
     @ArchTest
-    static final ArchRule entities_live_in_entity_package = classes()
+    static final ArchRule persistent_classes_live_in_entity_package = classes()
             .that().areAnnotatedWith(Entity.class)
-            .should().resideInAPackage(ROOT + ".entity..");
+            .or().areAnnotatedWith(Embeddable.class)
+            .or().areAnnotatedWith(MappedSuperclass.class)
+            .should().resideInAPackage(ENTITY);
 
     // --- Гигиена кода ---
 

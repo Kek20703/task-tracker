@@ -39,6 +39,10 @@ cd task-tracker-backend
 ./gradlew test       # тесты; для интеграционных нужен запущенный Docker
 ```
 
+При запуске из IntelliJ IDEA переменную нужно задать в конфигурации запуска:
+Run → Edit Configurations → Environment variables → `POSTGRES_PASSWORD=<пароль из .env>`.
+Без неё сервис не стартует с ошибкой `password authentication failed`.
+
 Примеры запросов — в `task-tracker-backend/http/*.http` (REST Client в IntelliJ IDEA).
 
 ## Стек
