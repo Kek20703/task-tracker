@@ -14,6 +14,20 @@
 
 Инфраструктура: Postgres, Kafka. Всё запускается через Docker Compose.
 
+## Локальный запуск инфраструктуры
+
+```bash
+cp .env.example .env   # и задать свой POSTGRES_PASSWORD
+docker compose up -d
+```
+
+| Что | Адрес с хоста | Адрес внутри compose-сети |
+|-----|---------------|---------------------------|
+| Postgres | `localhost:5432` | `postgres:5432` |
+| Kafka | `localhost:29092` | `kafka:9092` |
+| SMTP (Mailpit) | `localhost:1025` | `mailpit:1025` |
+| Пойманные письма | http://localhost:8025 | — |
+
 ## Стек
 
 Java 17, Spring Boot, Gradle, Postgres, Flyway, Kafka, Docker, GitHub Actions.
