@@ -19,3 +19,9 @@ spring:
 
 server:
   port: 8080
+
+jwt:
+  # Секрет подписи токенов, не короче 32 байт. Задаётся только через окружение.
+  secret: ${JWT_SECRET}
+  # Срок жизни access token. Refresh token нет, поэтому срок сравнительно длинный.
+  ttl: ${JWT_TTL:24h}

@@ -31,7 +31,7 @@ docker compose up -d
 ## Запуск backend из исходников
 
 Нужны JDK 17 и поднятая инфраструктура (см. выше). Пароль базы сервис берёт из переменной
-окружения `POSTGRES_PASSWORD` — той же, что в `.env`.
+окружения `POSTGRES_PASSWORD` — той же, что в `.env`. Оттуда же берётся `JWT_SECRET`.
 
 ```bash
 cd task-tracker-backend
@@ -42,6 +42,8 @@ cd task-tracker-backend
 При запуске из IntelliJ IDEA переменную нужно задать в конфигурации запуска:
 Run → Edit Configurations → Environment variables → `POSTGRES_PASSWORD=<пароль из .env>`.
 Без неё сервис не стартует с ошибкой `password authentication failed`.
+
+Секрет подписи токенов сервис берёт из `JWT_SECRET` (не короче 32 символов) — его нужно задать так же.
 
 Примеры запросов — в `task-tracker-backend/http/*.http` (REST Client в IntelliJ IDEA).
 
