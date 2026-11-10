@@ -65,10 +65,10 @@ class ArchitectureTest {
             .because("репозиторий знает только о сущностях");
 
     @ArchTest
-    static final ArchRule controllers_do_not_touch_entities = noClasses()
-            .that().resideInAPackage(CONTROLLER)
+    static final ArchRule only_services_and_repositories_use_entities = noClasses()
+            .that().resideOutsideOfPackages(SERVICE, REPOSITORY, ENTITY)
             .should().dependOnClassesThat().resideInAPackage(ENTITY)
-            .because("наружу отдаются только DTO, JPA-сущности не должны утекать в REST API");
+            .because("JPA-сущности не выходят из сервисного слоя: контроллеры, security и config получают DTO");
 
     @ArchTest
     static final ArchRule entities_are_independent = noClasses()

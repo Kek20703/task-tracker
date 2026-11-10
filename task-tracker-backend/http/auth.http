@@ -1,0 +1,32 @@
+### Вход (JSON). Токен из заголовка Authorization сохраняется для следующих запросов
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "my@email.com",
+  "password": "secret-password"
+}
+
+> {% client.global.set("authorization", response.headers.valueOf("Authorization")); %}
+
+### Вход (форма)
+POST http://localhost:8080/auth/login
+Content-Type: application/x-www-form-urlencoded
+
+email=my@email.com&password=secret-password
+
+### Текущий пользователь
+GET http://localhost:8080/user
+Authorization: {{authorization}}
+
+### Ошибка: неверный пароль (401)
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "my@email.com",
+  "password": "wrong-password"
+}
+
+### Ошибка: запрос без токена (401)
+GET http://localhost:8080/user
