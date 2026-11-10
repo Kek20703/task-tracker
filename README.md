@@ -47,7 +47,7 @@ Run → Edit Configurations → Environment variables → `POSTGRES_PASSWORD=<п
 
 ## Стек
 
-Java 17, Spring Boot, Gradle, Postgres, Flyway, Kafka, Docker, GitHub Actions.
+Java 17, Spring Boot, Gradle, Postgres, Liquibase, Kafka, Docker, GitHub Actions.
 
 ## Ветки
 

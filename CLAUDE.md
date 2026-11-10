@@ -17,6 +17,13 @@
   `JAVA_TOOL_OPTIONS=-Djdk.net.unixdomain.tmpdir=C:/Windows/Temp`.
 - Интеграционные тесты поднимают Postgres через Testcontainers — нужен запущенный Docker.
 
+## Миграции БД
+
+- Liquibase, формат XML. Владелец схемы — `task-tracker-backend`.
+- Мастер-файл: `src/main/resources/db/changelog/db.changelog-master.xml`, миграции —
+  отдельными файлами в `changes/` с номером по порядку (`002-...xml`).
+- Миграцию, попавшую в `dev`, не редактировать — только добавлять новую.
+
 ## Архитектурные тесты
 
 В каждом сервисе есть `ArchitectureTest` (ArchUnit) — он проверяет структуру кода и запускается
