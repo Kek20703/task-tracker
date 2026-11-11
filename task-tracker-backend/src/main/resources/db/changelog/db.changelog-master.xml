@@ -8,5 +8,6 @@
     <!-- Каждая новая миграция — отдельный файл в changes/, подключается сюда в порядке применения.
          Уже применённые файлы не редактируются. -->
     <include file="changes/001-create-users.xml" relativeToChangelogFile="true"/>
+    <include file="changes/002-create-tasks.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

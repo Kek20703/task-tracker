@@ -1,0 +1,66 @@
+### Вход. Токен из заголовка Authorization сохраняется для запросов ниже
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "my@email.com",
+  "password": "secret-password"
+}
+
+> {% client.global.set("authorization", response.headers.valueOf("Authorization")); %}
+
+### Список задач
+GET http://localhost:8080/tasks
+Authorization: {{authorization}}
+
+### Создать задачу (описание необязательно). id сохраняется для запросов ниже
+POST http://localhost:8080/tasks
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "title": "Купить молоко",
+  "description": "2 литра"
+}
+
+> {% client.global.set("taskId", response.body.id); %}
+
+### Переименовать — меняются только переданные поля
+PATCH http://localhost:8080/tasks/{{taskId}}
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "title": "Купить кефир"
+}
+
+### Отметить сделанной — сервер выставит completedAt
+PATCH http://localhost:8080/tasks/{{taskId}}
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "status": "DONE"
+}
+
+### Вернуть в несделанные — completedAt обнулится
+PATCH http://localhost:8080/tasks/{{taskId}}
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "status": "TODO"
+}
+
+### Удалить
+DELETE http://localhost:8080/tasks/{{taskId}}
+Authorization: {{authorization}}
+
+### Ошибка: пустой заголовок (400)
+POST http://localhost:8080/tasks
+Authorization: {{authorization}}
+Content-Type: application/json
+
+{
+  "title": "   "
+}

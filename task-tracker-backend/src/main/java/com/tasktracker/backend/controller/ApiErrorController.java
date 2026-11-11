@@ -1,6 +1,7 @@
 package com.tasktracker.backend.controller;
 
 import com.tasktracker.backend.dto.ErrorDto;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.webmvc.error.ErrorController;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Ошибки, возникшие вне контроллеров (их контейнер перенаправляет на /error),
  * отдаются в том же формате {"message": "..."}, что и остальные.
  */
+@Hidden
 @RestController
 public class ApiErrorController implements ErrorController {
 
