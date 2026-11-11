@@ -8,6 +8,9 @@ permissions:
   - action: subagent
     resource: "*"
     effect: deny
+  - action: external_directory
+    resource: "*"
+    effect: deny
   - action: webfetch
     resource: "*"
     effect: deny
@@ -32,6 +35,21 @@ permissions:
   - action: read
     resource: "**/.env.example"
     effect: allow
+  - action: read
+    resource: "**/.ssh/**"
+    effect: deny
+  - action: read
+    resource: "**/.aws/**"
+    effect: deny
+  - action: read
+    resource: "**/*.pem"
+    effect: deny
+  - action: read
+    resource: "**/*.key"
+    effect: deny
+  - action: read
+    resource: "**/http-client.private.*"
+    effect: deny
   - action: glob
     resource: "*"
     effect: allow

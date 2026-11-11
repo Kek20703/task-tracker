@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agents": {
+    "build": {
+      "permissions": [
+        { "action": "shell", "resource": "gh pr merge *", "effect": "deny" }
+      ]
+    }
+  }
+}
