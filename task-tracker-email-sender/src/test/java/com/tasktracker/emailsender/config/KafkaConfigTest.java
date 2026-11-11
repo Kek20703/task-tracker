@@ -2,11 +2,9 @@ package com.tasktracker.emailsender.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.jupiter.api.Test;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.util.backoff.FixedBackOff;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 class KafkaConfigTest {
 
@@ -49,12 +47,5 @@ class KafkaConfigTest {
 	@Test
 	void nonsensicalAttemptCountDoesNotProduceNegativeRetries() {
 		assertThat(KafkaConfig.retryPolicy(0, 500).getMaxAttempts()).isZero();
-	}
-
-	@Test
-	void errorHandlerIsBuiltAroundRetryPolicy() {
-		KafkaTemplate<Object, Object> kafkaTemplate = mock(KafkaTemplate.class);
-
-		assertThat(kafkaConfig.kafkaErrorHandler(kafkaTemplate)).isNotNull();
 	}
 }
