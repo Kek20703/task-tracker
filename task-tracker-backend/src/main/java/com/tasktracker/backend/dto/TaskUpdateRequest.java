@@ -1,5 +1,7 @@
 package com.tasktracker.backend.dto;
 
+import com.tasktracker.backend.validation.NoNulCharacters;
+import com.tasktracker.backend.validation.NullOrNotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -10,11 +12,13 @@ import jakarta.validation.constraints.Size;
  */
 public record TaskUpdateRequest(
 
-        @Pattern(regexp = "(?s).*\\S.*", message = "Title must not be blank")
+        @NullOrNotBlank(message = "Title must not be blank")
         @Size(max = TaskLimits.TITLE_MAX, message = "Title is too long")
+        @NoNulCharacters(message = "Title must not contain NUL characters")
         String title,
 
         @Size(max = TaskLimits.DESCRIPTION_MAX, message = "Description is too long")
+        @NoNulCharacters(message = "Description must not contain NUL characters")
         String description,
 
         @Pattern(regexp = "TODO|DONE", message = "Status must be TODO or DONE")

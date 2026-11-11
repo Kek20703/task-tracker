@@ -8,6 +8,7 @@ import com.tasktracker.backend.entity.TaskStatus;
 import com.tasktracker.backend.exception.AccountNotFoundException;
 import com.tasktracker.backend.exception.TaskNotFoundException;
 import com.tasktracker.backend.repository.TaskRepository;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,9 @@ import java.util.List;
 @Service
 @Transactional
 public class TaskService {
+
+    /** Имя внешнего ключа tasks.user_id из миграции 002. */
+    private static final String OWNER_FOREIGN_KEY = "fk_tasks_user";
 
     private final TaskRepository taskRepository;
     private final UserService userService;
@@ -45,14 +49,17 @@ public class TaskService {
         try {
             return toResponse(taskRepository.saveAndFlush(task));
         } catch (DataIntegrityViolationException e) {
-            // Пользователя удалили между проверкой и вставкой — внешний ключ не пустил задачу.
-            throw new AccountNotFoundException();
+            if (violatesOwnerForeignKey(e)) {
+                // Пользователя удалили между проверкой и вставкой — внешний ключ не пустил задачу.
+                throw new AccountNotFoundException();
+            }
+            throw e;
         }
     }
 
     public TaskResponse update(Long userId, Long taskId, TaskUpdateRequest request) {
         userService.requireExisting(userId);
-        Task task = findOwned(userId, taskId);
+        Task task = findOwnedForUpdate(userId, taskId);
         if (request.title() != null) {
             task.rename(request.title().strip());
         }
@@ -67,11 +74,17 @@ public class TaskService {
 
     public void delete(Long userId, Long taskId) {
         userService.requireExisting(userId);
-        taskRepository.delete(findOwned(userId, taskId));
+        taskRepository.delete(findOwnedForUpdate(userId, taskId));
     }
 
-    private Task findOwned(Long userId, Long taskId) {
-        return taskRepository.findByIdAndUserId(taskId, userId).orElseThrow(TaskNotFoundException::new);
+    /** Задача блокируется до конца транзакции — см. {@link TaskRepository#findForUpdateByIdAndUserId}. */
+    private Task findOwnedForUpdate(Long userId, Long taskId) {
+        return taskRepository.findForUpdateByIdAndUserId(taskId, userId).orElseThrow(TaskNotFoundException::new);
+    }
+
+    private static boolean violatesOwnerForeignKey(DataIntegrityViolationException e) {
+        return e.getCause() instanceof ConstraintViolationException violation
+                && OWNER_FOREIGN_KEY.equalsIgnoreCase(violation.getConstraintName());
     }
 
     /** Postgres хранит время с точностью до микросекунд — обрезаем сразу, чтобы ответ совпадал с базой. */

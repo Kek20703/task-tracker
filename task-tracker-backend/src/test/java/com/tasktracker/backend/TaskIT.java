@@ -277,6 +277,74 @@ class TaskIT {
                 .andExpect(jsonPath("$.message").value("Authentication is required"));
         create(alice, "{\"title\": \"x\"}").andExpect(status().isUnauthorized());
         update(alice, id, "{\"title\": \"x\"}").andExpect(status().isUnauthorized());
+        mockMvc.perform(delete("/tasks/" + id).header(HttpHeaders.AUTHORIZATION, alice))
+                .andExpect(status().isUnauthorized());
+    }
+
+    // --- Ввод, который не должен доходить до базы или давать 500 ---
+
+    @Test
+    void rejectsNulCharacters() throws Exception {
+        create(alice, "{\"title\": \"a\\u0000b\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Title must not contain NUL characters"));
+        create(alice, "{\"title\": \"ok\", \"description\": \"a\\u0000b\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Description must not contain NUL characters"));
+
+        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        update(alice, id, "{\"title\": \"a\\u0000b\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Title must not contain NUL characters"));
+        update(alice, id, "{\"description\": \"a\\u0000b\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Description must not contain NUL characters"));
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\": \"a\\u0000@email.com\", \"password\": \"secret-password\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Email must not contain NUL characters"));
+    }
+
+    @Test
+    void unicodeWhitespaceTitleIsBlank() throws Exception {
+        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+
+        // Идеографический и em-пробел: String.strip() их убирает, значит и проверка должна их видеть.
+        update(alice, id, "{\"title\": \"\\u3000\\u2003\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Title must not be blank"));
+        create(alice, "{\"title\": \"\\u3000\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Title is required"));
+
+        assertThat(taskRepository.findById(id).orElseThrow().getTitle()).isEqualTo("Buy milk");
+    }
+
+    @Test
+    void rejectsTooLongDescriptionOnUpdate() throws Exception {
+        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+
+        update(alice, id, "{\"description\": \"" + "a".repeat(10_001) + "\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Description is too long"));
+    }
+
+    @Test
+    void malformedAndUnsupportedBodiesUseCommonErrorFormat() throws Exception {
+        create(alice, "{not json")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Request body is missing or malformed"));
+        mockMvc.perform(post("/tasks")
+                        .header(HttpHeaders.AUTHORIZATION, alice)
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("Buy milk"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.message").value("Unsupported Media Type"));
+        mockMvc.perform(get("/tasks/1").header(HttpHeaders.AUTHORIZATION, alice))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.message").value("Method Not Allowed"));
     }
 
     @Test
