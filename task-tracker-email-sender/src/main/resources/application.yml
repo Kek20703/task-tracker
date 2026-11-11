@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: task-tracker-email-sender
+  kafka:
+    # Значение по умолчанию — брокер из docker compose для запуска из IDE.
+    # В контейнере переопределяется переменной KAFKA_BOOTSTRAP_SERVERS=kafka:9092.
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: task-tracker-email-sender
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        # Тип сообщения берём из настройки, а не из заголовков: отправитель — другой сервис,
+        # и класса с тем же DTO в этом приложении нет.
+        spring.json.use.type.headers: false
+        spring.json.trusted.packages: com.tasktracker.emailsender.dto
+        spring.json.value.default.type: com.tasktracker.emailsender.dto.EmailMessage
+    producer:
+      # Producer нужен только для пересылки недоставленных сообщений в топик-отстойник.
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+  mail:
+    # Локально — Mailpit из docker compose; на проде — SMTP через переменные окружения.
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    # Пустые значения означают «без авторизации»: так подключается Mailpit.
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_SMTP_STARTTLS:false}
+
+email-sender:
+  # Адрес отправителя. На проде должен быть подтверждён у SMTP-провайдера.
+  from: ${MAIL_FROM:no-reply@task-tracker.local}
+  retry:
+    # Сколько всего раз пытаться отправить письмо, включая первую попытку.
+    max-attempts: ${EMAIL_RETRY_MAX_ATTEMPTS:3}
+    # Пауза между попытками.
+    interval-ms: ${EMAIL_RETRY_INTERVAL_MS:2000}
