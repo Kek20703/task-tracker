@@ -7,6 +7,10 @@ import com.tasktracker.backend.dto.TaskUpdateRequest;
 import com.tasktracker.backend.service.TaskService;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,6 +43,9 @@ public class TaskController {
     }
 
     @Operation(summary = "Создать задачу", description = "Обязателен только заголовок. Новая задача создаётся в статусе TODO.")
+    @ApiResponse(responseCode = "201", description = "Задача создана; адрес — в заголовке Location",
+            headers = @Header(name = "Location", description = "Адрес новой задачи", schema = @Schema(type = "string")),
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = TaskResponse.class)))
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TaskResponse> create(@AuthenticationPrincipal CurrentUser currentUser,
                                                @Valid @RequestBody TaskCreateRequest request) {
@@ -58,6 +65,7 @@ public class TaskController {
     }
 
     @Operation(summary = "Удалить задачу")
+    @ApiResponse(responseCode = "204", description = "Задача удалена")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@AuthenticationPrincipal CurrentUser currentUser, @PathVariable Long id) {
         taskService.delete(CurrentUsers.requireId(currentUser), id);
