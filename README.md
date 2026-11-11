@@ -57,6 +57,33 @@ http://localhost:8080/swagger-ui.html (описание в формате OpenAP
 3. Кнопка **Authorize** вверху страницы → вставить токен → **Authorize**. После этого работают
    методы с замком: `GET /user` и всё про задачи.
 
+## Запуск email-sender из исходников
+
+Нужны JDK 17 и та же инфраструктура. Сервис читает задания на отправку из Kafka и шлёт письма
+через SMTP. Значения по умолчанию рассчитаны на запуск из IDE рядом с compose: брокер —
+`localhost:29092`, почта — Mailpit на `localhost:1025`.
+
+```bash
+cd task-tracker-email-sender
+./gradlew bootRun   # подключается к Kafka и слушает топик EMAIL_SENDING_TASKS
+./gradlew test      # тесты; для интеграционных (Kafka в Testcontainers) нужен запущенный Docker
+```
+
+Пойманные письма видны в Mailpit: http://localhost:8025. Проверить вручную можно так — положить
+письмо в топик и убедиться, что оно появилось в Mailpit:
+
+```bash
+docker exec -i task-tracker-kafka /opt/kafka/bin/kafka-console-producer.sh \
+  --bootstrap-server localhost:9092 --topic EMAIL_SENDING_TASKS
+# ввести строку: {"to":"user@example.com","subject":"Тема","text":"Текст"}
+```
+
+Настройки переопределяются переменными окружения: `KAFKA_BOOTSTRAP_SERVERS`, `MAIL_HOST`,
+`MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM`, `MAIL_SMTP_AUTH`,
+`MAIL_SMTP_STARTTLS`. При сбое отправки сервис делает до трёх попыток, после чего перекладывает
+письмо в топик `EMAIL_SENDING_TASKS.DLT` (число попыток и пауза — `EMAIL_RETRY_MAX_ATTEMPTS`,
+`EMAIL_RETRY_INTERVAL_MS`).
+
 ## Стек
 
 Java 17, Spring Boot, Gradle, Postgres, Liquibase, Kafka, Docker, GitHub Actions.
