@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 /** Выпускает и проверяет JWT access token (подпись HMAC-SHA256). */
 @Service
@@ -41,7 +42,7 @@ public class JwtService {
         this.ttl = ttl;
     }
 
-    public String issue(Long userId, String email) {
+    public String issue(UUID userId, String email) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(String.valueOf(userId))
@@ -69,7 +70,7 @@ public class JwtService {
                     || email == null) {
                 return Optional.empty();
             }
-            return Optional.of(new CurrentUser(Long.valueOf(claims.getSubject()), email));
+            return Optional.of(new CurrentUser(UUID.fromString(claims.getSubject()), email));
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }

@@ -6,13 +6,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AuthResponsesTest {
 
     @Test
     void tokenResponseCarriesUserAndBearerHeader() {
-        UserResponse user = new UserResponse(1L, "user@example.com");
+        UserResponse user = new UserResponse(UUID.randomUUID(), "user@example.com");
 
         ResponseEntity<UserResponse> response = AuthResponses.withToken(new AuthResult(user, "jwt-token"));
 

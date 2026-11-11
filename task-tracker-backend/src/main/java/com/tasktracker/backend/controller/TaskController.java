@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/tasks")
@@ -59,7 +60,7 @@ public class TaskController {
             + "status: TODO или DONE — при DONE сервер ставит completedAt, при TODO обнуляет. Описание очищается пустой строкой.")
     @PatchMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public TaskResponse update(@AuthenticationPrincipal CurrentUser currentUser,
-                               @PathVariable Long id,
+                               @PathVariable UUID id,
                                @Valid @RequestBody TaskUpdateRequest request) {
         return taskService.update(CurrentUsers.requireId(currentUser), id, request);
     }
@@ -67,7 +68,7 @@ public class TaskController {
     @Operation(summary = "Удалить задачу")
     @ApiResponse(responseCode = "204", description = "Задача удалена")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@AuthenticationPrincipal CurrentUser currentUser, @PathVariable Long id) {
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal CurrentUser currentUser, @PathVariable UUID id) {
         taskService.delete(CurrentUsers.requireId(currentUser), id);
         return ResponseEntity.noContent().build();
     }

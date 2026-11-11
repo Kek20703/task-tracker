@@ -49,7 +49,7 @@ class UserRegistrationIT {
     void registersUserFromJson() throws Exception {
         register("my@email.com", "secret-password")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.id").isString())
                 .andExpect(jsonPath("$.email").value("my@email.com"))
                 .andExpect(jsonPath("$.password").doesNotExist());
 

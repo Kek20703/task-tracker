@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -56,7 +58,7 @@ class AuthIT {
         assertThat(authorization).startsWith("Bearer ");
         mockMvc.perform(get("/user").header(HttpHeaders.AUTHORIZATION, authorization))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.id").isString())
                 .andExpect(jsonPath("$.email").value(EMAIL))
                 .andExpect(jsonPath("$.password").doesNotExist());
     }
@@ -154,7 +156,7 @@ class AuthIT {
 
     @Test
     void expiredTokenIsUnauthorized() throws Exception {
-        Long userId = registerAndGetId();
+        UUID userId = registerAndGetId();
         String expired = TestTokens.sign(TestTokens.expired(userId, EMAIL), TestcontainersConfiguration.TEST_JWT_SECRET);
 
         expectUnauthorized("Bearer " + expired);
@@ -162,7 +164,7 @@ class AuthIT {
 
     @Test
     void tokenSignedWithAnotherSecretIsUnauthorized() throws Exception {
-        Long userId = registerAndGetId();
+        UUID userId = registerAndGetId();
         String foreign = TestTokens.sign(TestTokens.valid(userId, EMAIL), "another-secret-0123456789-abcdefghijklmn");
 
         expectUnauthorized("Bearer " + foreign);
@@ -171,7 +173,7 @@ class AuthIT {
     @Test
     void handMadeValidTokenIsAccepted() throws Exception {
         // Контроль для тестов выше и ниже: токен из TestTokens с верным секретом действительно проходит.
-        Long userId = registerAndGetId();
+        UUID userId = registerAndGetId();
         String token = TestTokens.sign(TestTokens.valid(userId, EMAIL), TestcontainersConfiguration.TEST_JWT_SECRET);
 
         mockMvc.perform(get("/user").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
@@ -180,7 +182,7 @@ class AuthIT {
 
     @Test
     void tokenWithoutExpirationIsUnauthorized() throws Exception {
-        Long userId = registerAndGetId();
+        UUID userId = registerAndGetId();
         String eternal = TestTokens.sign(
                 Jwts.builder().subject(String.valueOf(userId)).claim("email", EMAIL),
                 TestcontainersConfiguration.TEST_JWT_SECRET);
@@ -253,7 +255,7 @@ class AuthIT {
                 .andExpect(jsonPath("$.message").value("Authentication is required"));
     }
 
-    private Long registerAndGetId() throws Exception {
+    private UUID registerAndGetId() throws Exception {
         register(EMAIL, PASSWORD);
         return userRepository.findByEmail(EMAIL).orElseThrow().getId();
     }

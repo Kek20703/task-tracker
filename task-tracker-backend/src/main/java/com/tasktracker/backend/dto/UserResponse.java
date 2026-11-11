@@ -1,4 +1,6 @@
 package com.tasktracker.backend.dto;
 
-public record UserResponse(Long id, String email) {
+import java.util.UUID;
+
+public record UserResponse(UUID id, String email) {
 }

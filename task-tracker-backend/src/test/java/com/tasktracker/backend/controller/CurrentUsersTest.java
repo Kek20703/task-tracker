@@ -8,14 +8,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CurrentUsersTest {
 
+    private static final UUID USER_ID = UUID.fromString("018f6d2e-1b7f-7cc1-9f31-3f6b8a2e4c5d");
+
     @Test
     void returnsIdOfCurrentUser() {
-        assertThat(CurrentUsers.requireId(new CurrentUser(42L, "user@example.com"))).isEqualTo(42L);
+        assertThat(CurrentUsers.requireId(new CurrentUser(USER_ID, "user@example.com"))).isEqualTo(USER_ID);
     }
 
     @Test

@@ -7,10 +7,11 @@ import org.springframework.data.jpa.repository.Lock;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface TaskRepository extends JpaRepository<Task, Long> {
+public interface TaskRepository extends JpaRepository<Task, UUID> {
 
-    List<Task> findAllByUserIdOrderByIdAsc(Long userId);
+    List<Task> findAllByUserIdOrderByIdAsc(UUID userId);
 
     /**
      * Задача для изменения или удаления: ищется сразу с владельцем (чужая для запроса не существует)
@@ -19,5 +20,5 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
      * предыдущего, а не затирает его. Если задачу успели удалить, второй запрос её просто не найдёт.
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<Task> findForUpdateByIdAndUserId(Long id, Long userId);
+    Optional<Task> findForUpdateByIdAndUserId(UUID id, UUID userId);
 }

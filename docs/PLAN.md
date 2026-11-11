@@ -154,16 +154,12 @@
 
 ## Долги
 
-- **Перед этапом 7.** Перейти на UUIDv7 как первичный ключ пользователей и задач: подключить
-  `uuid-creator` в backend, обновиться до PostgreSQL 18, добавить миграцию `003` с backfill через
-  `uuidv7()` и заменить `Long` на `UUID` в API, JWT, репозиториях и тестах. Постановка —
-  `docs/specs/uuid-pk.md`. Причина: последовательные id раскрывают количество пользователей и задач.
-- **После UUIDv7, перед этапом 7.** Перейти с Spring Data JPA/Hibernate на Spring Data JDBC:
+- **Перед этапом 7.** Перейти с Spring Data JPA/Hibernate на Spring Data JDBC:
   `CrudRepository` вместо `JpaRepository`, `@Table`/`@Column` Spring Data Relational, `Persistable`
   для назначенных UUID, `@Query ... FOR UPDATE` вместо `@Lock`, `created_at` через `@CreatedDate`
   или установку в коде, разбор `DataIntegrityViolationException` без Hibernate-исключений.
-  `ArchitectureTest` перевести с JPA-аннотаций на `@Table`, не ослабляя правила. Отдельный PR
-  после UUIDv7 и PostgreSQL 18.
+  `ArchitectureTest` перевести с JPA-аннотаций на `@Table`, не ослабляя правила. Отдельный PR;
+  UUIDv7 и PostgreSQL 18 уже сделаны (#22).
 - **Без срока.** Гарантированная доставка приветственного письма: outbox или повторная публикация,
   если Kafka была недоступна. Сейчас письмо может потеряться. Из постановки этапа 6.
 - **Этап 9.** За обратным прокси задать `server.forward-headers-strategy`, иначе Swagger покажет

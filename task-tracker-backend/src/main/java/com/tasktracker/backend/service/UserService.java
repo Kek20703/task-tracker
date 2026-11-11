@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -45,12 +46,12 @@ public class UserService {
      * Пользователь по id из токена. Если его уже удалили, токен больше ничего не значит.
      * Все запросы «от имени текущего пользователя» должны начинаться с этой проверки.
      */
-    public UserResponse getById(Long id) {
+    public UserResponse getById(UUID id) {
         return userRepository.findById(id).map(UserService::toResponse).orElseThrow(AccountNotFoundException::new);
     }
 
     /** Проверка без загрузки пользователя — для операций, которым нужен только сам факт его существования. */
-    public void requireExisting(Long id) {
+    public void requireExisting(UUID id) {
         if (!userRepository.existsById(id)) {
             throw new AccountNotFoundException();
         }
