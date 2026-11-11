@@ -17,6 +17,12 @@ permissions:
   - action: read
     resource: "**/.env*"
     effect: deny
+  - action: read
+    resource: ".env.example"
+    effect: allow
+  - action: read
+    resource: "**/.env.example"
+    effect: allow
   - action: glob
     resource: "*"
     effect: allow
@@ -26,14 +32,14 @@ permissions:
   - action: glob
     resource: "**/.env*"
     effect: deny
-  - action: grep
-    resource: "*"
+  - action: glob
+    resource: ".env.example"
+    effect: allow
+  - action: glob
+    resource: "**/.env.example"
     effect: allow
   - action: grep
-    resource: ".env*"
-    effect: deny
-  - action: grep
-    resource: "**/.env*"
+    resource: "*"
     effect: deny
   - action: shell
     resource: "git status*"
