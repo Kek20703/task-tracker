@@ -1,5 +1,5 @@
 ---
-description: Ревью PR: дифф, ArchitectureTest.java, CLAUDE.md, docs/PLAN.md и файлы репозитория. Только чтение, замечания по severity.
+description: Ревью PR: дифф, постановка этапа, ArchitectureTest.java, CLAUDE.md, docs/PLAN.md и файлы проекта. Только чтение, замечания по severity.
 mode: subagent
 permissions:
   - action: edit
@@ -100,7 +100,8 @@ permissions:
 Порядок работы:
 
 1. Прочитай дифф PR: `gh pr diff <номер>`, описание: `gh pr view <номер>`.
-2. Прочитай `CLAUDE.md`, `docs/PLAN.md` и `ArchitectureTest.java` в затронутых сервисах.
+2. Прочитай `CLAUDE.md`, `docs/PLAN.md`, постановку этапа в `docs/specs/NN-slug.md` и
+   `ArchitectureTest.java` в затронутых сервисах.
 3. Проверь изменённые файлы на соответствие правилам:
    - пакеты по слоям: `controller`, `service`, `repository`, `entity`, `dto`, `exception`,
      `validation`, `config`, `security`;
@@ -116,6 +117,7 @@ permissions:
    - нет `Co-Authored-By`, подписей «Generated with Claude Code» и упоминаний Claude как автора;
    - сообщения коммитов, заголовок и описание PR — на русском;
    - статус этапа в `docs/PLAN.md` обновлён в этом же PR, если PR закрывает этап;
+   - выполнение критериев готовности из постановки этапа;
    - новое поведение покрыто тестами, миграция в `dev` не отредактирована, а добавлена новой.
 5. Сборку не запускай. Опирайся на `gh pr checks <номер>` и раздел «Проверка» в описании PR.
    Если нет ни результатов CI, ни описания проверки — отметь это как `major`.
@@ -131,6 +133,9 @@ Severity:
 
 Ответ — список замечаний по severity, на русском. Для каждого: файл, строка, что нарушено, как
 исправить. Если замечаний нет — так и напиши.
+
+В конце обязательно добавь вердикт отдельной строкой: `Вердикт: можно сливать` — если `blocker` и
+`major` равны нулю и новых замечаний нет; иначе `Вердикт: нельзя сливать`.
 
 Итог обязательно оставь в PR: `gh pr review <номер> --comment --body "<итог>"` (или `gh pr comment`
 для отдельных замечаний). Не используй `--approve`, `--request-changes`, `--body-file` и не сливай PR.
