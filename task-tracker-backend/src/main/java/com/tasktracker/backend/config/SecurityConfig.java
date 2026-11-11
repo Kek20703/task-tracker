@@ -49,6 +49,8 @@ public class SecurityConfig {
                         // Переадресация контейнера на /error — не новый запрос клиента, а показ уже случившейся ошибки.
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.POST, "/user", "/auth/login").permitAll()
+                        // Документация API: описание в формате OpenAPI и Swagger UI для ручной проверки.
+                        .requestMatchers(HttpMethod.GET, "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint((request, response, ex) ->

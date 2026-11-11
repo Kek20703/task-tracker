@@ -6,6 +6,11 @@ import com.tasktracker.backend.dto.TaskResponse;
 import com.tasktracker.backend.dto.TaskUpdateRequest;
 import com.tasktracker.backend.service.TaskService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,11 +36,16 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    @Operation(summary = "Задачи текущего пользователя")
     @GetMapping
     public List<TaskResponse> list(@AuthenticationPrincipal CurrentUser currentUser) {
         return taskService.list(CurrentUsers.requireId(currentUser));
     }
 
+    @Operation(summary = "Создать задачу", description = "Обязателен только заголовок. Новая задача создаётся в статусе TODO.")
+    @ApiResponse(responseCode = "201", description = "Задача создана; адрес — в заголовке Location",
+            headers = @Header(name = "Location", description = "Адрес новой задачи", schema = @Schema(type = "string")),
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = TaskResponse.class)))
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<TaskResponse> create(@AuthenticationPrincipal CurrentUser currentUser,
                                                @Valid @RequestBody TaskCreateRequest request) {
@@ -45,6 +55,8 @@ public class TaskController {
                 .body(task);
     }
 
+    @Operation(summary = "Изменить задачу", description = "Меняются только переданные поля; null и отсутствующее поле не трогаются. "
+            + "status: TODO или DONE — при DONE сервер ставит completedAt, при TODO обнуляет. Описание очищается пустой строкой.")
     @PatchMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public TaskResponse update(@AuthenticationPrincipal CurrentUser currentUser,
                                @PathVariable Long id,
@@ -52,6 +64,8 @@ public class TaskController {
         return taskService.update(CurrentUsers.requireId(currentUser), id, request);
     }
 
+    @Operation(summary = "Удалить задачу")
+    @ApiResponse(responseCode = "204", description = "Задача удалена")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@AuthenticationPrincipal CurrentUser currentUser, @PathVariable Long id) {
         taskService.delete(CurrentUsers.requireId(currentUser), id);

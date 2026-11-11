@@ -47,6 +47,16 @@ Run → Edit Configurations → Environment variables → `POSTGRES_PASSWORD=<п
 
 Примеры запросов — в `task-tracker-backend/http/*.http` (REST Client в IntelliJ IDEA).
 
+### Swagger UI
+
+После запуска backend документация API с возможностью отправлять запросы открывается на
+http://localhost:8080/swagger-ui.html (описание в формате OpenAPI — http://localhost:8080/v3/api-docs).
+
+1. `POST /user` или `POST /auth/login` → **Try it out** → **Execute**.
+2. Скопировать токен из заголовка ответа `authorization` — без слова `Bearer`.
+3. Кнопка **Authorize** вверху страницы → вставить токен → **Authorize**. После этого работают
+   методы с замком: `GET /user` и всё про задачи.
+
 ## Стек
 
 Java 17, Spring Boot, Gradle, Postgres, Liquibase, Kafka, Docker, GitHub Actions.

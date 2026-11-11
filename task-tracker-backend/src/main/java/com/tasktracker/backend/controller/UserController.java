@@ -5,6 +5,8 @@ import com.tasktracker.backend.dto.RegisterRequest;
 import com.tasktracker.backend.dto.UserResponse;
 import com.tasktracker.backend.service.AuthService;
 import com.tasktracker.backend.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,16 +30,22 @@ public class UserController {
         this.userService = userService;
     }
 
+    @SecurityRequirements
+    @Operation(summary = "Регистрация и сразу вход", description = ApiDocs.FORM_ALSO_ACCEPTED)
+    @ApiDocs.TokenInResponseHeader
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserResponse> registerJson(@Valid @RequestBody RegisterRequest request) {
         return AuthResponses.withToken(authService.register(request));
     }
 
+    /** То же для формы. В документации скрыт: springdoc слил бы его с JSON-методом в одну искажённую операцию. */
+    @Operation(hidden = true)
     @PostMapping(consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<UserResponse> registerForm(@Valid @ModelAttribute RegisterRequest request) {
         return AuthResponses.withToken(authService.register(request));
     }
 
+    @Operation(summary = "Текущий пользователь")
     @GetMapping
     public UserResponse currentUser(@AuthenticationPrincipal CurrentUser currentUser) {
         return userService.getById(CurrentUsers.requireId(currentUser));
