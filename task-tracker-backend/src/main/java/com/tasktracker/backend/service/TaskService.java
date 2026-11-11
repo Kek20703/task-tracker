@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Задачи текущего пользователя. Каждая операция начинается с проверки, что пользователь из токена
@@ -37,12 +38,12 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public List<TaskResponse> list(Long userId) {
+    public List<TaskResponse> list(UUID userId) {
         userService.requireExisting(userId);
         return taskRepository.findAllByUserIdOrderByIdAsc(userId).stream().map(TaskService::toResponse).toList();
     }
 
-    public TaskResponse create(Long userId, TaskCreateRequest request) {
+    public TaskResponse create(UUID userId, TaskCreateRequest request) {
         userService.requireExisting(userId);
         String description = request.description() == null ? "" : request.description();
         Task task = new Task(userId, request.title().strip(), description);
@@ -57,7 +58,7 @@ public class TaskService {
         }
     }
 
-    public TaskResponse update(Long userId, Long taskId, TaskUpdateRequest request) {
+    public TaskResponse update(UUID userId, UUID taskId, TaskUpdateRequest request) {
         userService.requireExisting(userId);
         Task task = findOwnedForUpdate(userId, taskId);
         if (request.title() != null) {
@@ -72,13 +73,13 @@ public class TaskService {
         return toResponse(taskRepository.saveAndFlush(task));
     }
 
-    public void delete(Long userId, Long taskId) {
+    public void delete(UUID userId, UUID taskId) {
         userService.requireExisting(userId);
         taskRepository.delete(findOwnedForUpdate(userId, taskId));
     }
 
     /** Задача блокируется до конца транзакции — см. {@link TaskRepository#findForUpdateByIdAndUserId}. */
-    private Task findOwnedForUpdate(Long userId, Long taskId) {
+    private Task findOwnedForUpdate(UUID userId, UUID taskId) {
         return taskRepository.findForUpdateByIdAndUserId(taskId, userId).orElseThrow(TaskNotFoundException::new);
     }
 

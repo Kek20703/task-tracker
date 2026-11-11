@@ -4,26 +4,20 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Table(name = "tasks")
-public class Task {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Task extends UuidIdentified {
 
     /** Владелец. Хранится как id, а не связь с User: задаче не нужно загружать пользователя. */
     @Column(name = "user_id", nullable = false, updatable = false)
-    private Long userId;
+    private UUID userId;
 
     @Column(nullable = false, length = 255)
     private String title;
@@ -46,7 +40,7 @@ public class Task {
     protected Task() {
     }
 
-    public Task(Long userId, String title, String description) {
+    public Task(UUID userId, String title, String description) {
         this.userId = userId;
         this.title = title;
         this.description = description;
@@ -73,11 +67,7 @@ public class Task {
         completedAt = newStatus == TaskStatus.DONE ? now : null;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public Long getUserId() {
+    public UUID getUserId() {
         return userId;
     }
 

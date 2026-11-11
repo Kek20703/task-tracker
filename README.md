@@ -21,6 +21,11 @@ cp .env.example .env   # и задать свои POSTGRES_PASSWORD и JWT_SECRE
 docker compose up -d
 ```
 
+База — PostgreSQL 18. Если ранее инфраструктура поднималась на Postgres 17, старый volume
+несовместим с новым образом: остановите контейнеры, удалите volume
+(`docker volume rm task-tracker_postgres-data`) и запустите compose заново — миграции Liquibase
+создадут схему с нуля, данные локальной разработки не переносятся.
+
 | Что | Адрес с хоста | Адрес внутри compose-сети |
 |-----|---------------|---------------------------|
 | Postgres | `localhost:5432` | `postgres:5432` |

@@ -18,6 +18,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.matchesPattern;
@@ -69,8 +71,8 @@ class TaskIT {
     void createsTaskWithTitleOnly() throws Exception {
         create(alice, "{\"title\": \"Buy milk\"}")
                 .andExpect(status().isCreated())
-                .andExpect(header().string(HttpHeaders.LOCATION, matchesPattern(".*/tasks/\\d+")))
-                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(header().string(HttpHeaders.LOCATION, matchesPattern(".*/tasks/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")))
+                .andExpect(jsonPath("$.id").isString())
                 .andExpect(jsonPath("$.title").value("Buy milk"))
                 .andExpect(jsonPath("$.description").value(""))
                 .andExpect(jsonPath("$.status").value("TODO"))
@@ -89,7 +91,7 @@ class TaskIT {
     @Test
     void locationHeaderPointsToCreatedTask() throws Exception {
         ResultActions created = create(alice, "{\"title\": \"Buy milk\"}");
-        long id = readJson(created).get("id").asLong();
+        UUID id = UUID.fromString(readJson(created).get("id").asString());
 
         created.andExpect(header().string(HttpHeaders.LOCATION, endsWith("/tasks/" + id)));
     }
@@ -145,7 +147,7 @@ class TaskIT {
 
     @Test
     void updatesOnlyGivenFields() throws Exception {
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
         update(alice, id, "{\"description\": \"2 liters\"}").andExpect(status().isOk());
 
         update(alice, id, "{\"title\": \"Buy kefir\"}")
@@ -157,7 +159,7 @@ class TaskIT {
 
     @Test
     void emptyStringClearsDescriptionButNullKeepsIt() throws Exception {
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
         update(alice, id, "{\"description\": \"2 liters\"}");
 
         update(alice, id, "{\"description\": null}").andExpect(jsonPath("$.description").value("2 liters"));
@@ -166,7 +168,7 @@ class TaskIT {
 
     @Test
     void markingDoneSetsCompletionTimeAndReopeningClearsIt() throws Exception {
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
 
         String completedAt = readJson(update(alice, id, "{\"status\": \"DONE\"}")
                 .andExpect(status().isOk())
@@ -189,7 +191,7 @@ class TaskIT {
 
     @Test
     void emptyPatchChangesNothing() throws Exception {
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
 
         update(alice, id, "{}")
                 .andExpect(status().isOk())
@@ -198,7 +200,7 @@ class TaskIT {
 
     @Test
     void rejectsInvalidUpdate() throws Exception {
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
 
         update(alice, id, "{\"title\": \"  \"}")
                 .andExpect(status().isBadRequest())
@@ -221,7 +223,7 @@ class TaskIT {
 
     @Test
     void deletesTask() throws Exception {
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
 
         mockMvc.perform(delete("/tasks/" + id).header(HttpHeaders.AUTHORIZATION, alice))
                 .andExpect(status().isNoContent());
@@ -236,7 +238,7 @@ class TaskIT {
 
     @Test
     void someoneElsesTaskLooksLikeMissingOne() throws Exception {
-        long bobsTask = createAndRead(bob, "Bob's task").get("id").asLong();
+        UUID bobsTask = UUID.fromString(createAndRead(bob, "Bob's task").get("id").asString());
 
         update(alice, bobsTask, "{\"title\": \"hacked\", \"status\": \"DONE\"}")
                 .andExpect(status().isNotFound())
@@ -244,7 +246,7 @@ class TaskIT {
         mockMvc.perform(delete("/tasks/" + bobsTask).header(HttpHeaders.AUTHORIZATION, alice))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Task not found"));
-        update(alice, Long.MAX_VALUE, "{\"title\": \"x\"}")
+        update(alice, UUID.randomUUID(), "{\"title\": \"x\"}")
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Task not found"));
 
@@ -274,7 +276,7 @@ class TaskIT {
 
     @Test
     void tokenOfDeletedUserCannotWorkWithTasks() throws Exception {
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
         userRepository.delete(userRepository.findByEmail("alice@email.com").orElseThrow());
 
         mockMvc.perform(get("/tasks").header(HttpHeaders.AUTHORIZATION, alice))
@@ -297,7 +299,7 @@ class TaskIT {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Description must not contain NUL characters"));
 
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
         update(alice, id, "{\"title\": \"a\\u0000b\"}")
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Title must not contain NUL characters"));
@@ -314,7 +316,7 @@ class TaskIT {
 
     @Test
     void unicodeWhitespaceTitleIsBlank() throws Exception {
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
 
         // Идеографический и em-пробел: String.strip() их убирает, значит и проверка должна их видеть.
         update(alice, id, "{\"title\": \"\\u3000\\u2003\"}")
@@ -329,7 +331,7 @@ class TaskIT {
 
     @Test
     void rejectsTooLongDescriptionOnUpdate() throws Exception {
-        long id = createAndRead(alice, "Buy milk").get("id").asLong();
+        UUID id = UUID.fromString(createAndRead(alice, "Buy milk").get("id").asString());
 
         update(alice, id, "{\"description\": \"" + "a".repeat(10_001) + "\"}")
                 .andExpect(status().isBadRequest())
@@ -347,7 +349,7 @@ class TaskIT {
                         .content("Buy milk"))
                 .andExpect(status().isUnsupportedMediaType())
                 .andExpect(jsonPath("$.message").value("Unsupported Media Type"));
-        mockMvc.perform(get("/tasks/1").header(HttpHeaders.AUTHORIZATION, alice))
+        mockMvc.perform(get("/tasks/" + UUID.randomUUID()).header(HttpHeaders.AUTHORIZATION, alice))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.message").value("Method Not Allowed"));
     }

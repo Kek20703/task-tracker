@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,7 +30,7 @@ class TaskServiceTest {
         when(taskRepository.saveAndFlush(any(Task.class))).thenThrow(new DataIntegrityViolationException("fk",
                 new ConstraintViolationException("fk", new SQLException("fk", "23503"), "fk_tasks_user")));
 
-        assertThatThrownBy(() -> taskService.create(1L, request)).isInstanceOf(AccountNotFoundException.class);
+        assertThatThrownBy(() -> taskService.create(UUID.randomUUID(), request)).isInstanceOf(AccountNotFoundException.class);
     }
 
     @Test
@@ -38,7 +39,7 @@ class TaskServiceTest {
         when(taskRepository.saveAndFlush(any(Task.class))).thenThrow(new DataIntegrityViolationException("data",
                 new DataException("bad data", new SQLException("bad data", "22021"))));
 
-        assertThatThrownBy(() -> taskService.create(1L, request))
+        assertThatThrownBy(() -> taskService.create(UUID.randomUUID(), request))
                 .isInstanceOf(DataIntegrityViolationException.class)
                 .isNotInstanceOf(AccountNotFoundException.class);
     }
@@ -48,7 +49,7 @@ class TaskServiceTest {
         when(taskRepository.saveAndFlush(any(Task.class))).thenThrow(new DataIntegrityViolationException("check",
                 new ConstraintViolationException("check", new SQLException("check", "23514"), "ck_tasks_status")));
 
-        assertThatThrownBy(() -> taskService.create(1L, request))
+        assertThatThrownBy(() -> taskService.create(UUID.randomUUID(), request))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 }

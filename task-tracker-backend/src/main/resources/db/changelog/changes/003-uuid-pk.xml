@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Техдолг uuid-pk: первичные ключи users и tasks — UUIDv7 вместо последовательных bigint.
+         Последовательные id раскрывают количество пользователей и задач.
+         Функция uuidv7() доступна начиная с PostgreSQL 18. -->
+    <changeSet id="003-uuid-pk" author="Kek20703">
+
+        <!-- Новые uuid-колонки рядом со старыми. -->
+        <addColumn tableName="users">
+            <column name="id_uuid" type="uuid"/>
+        </addColumn>
+        <addColumn tableName="tasks">
+            <column name="id_uuid" type="uuid"/>
+            <column name="user_id_uuid" type="uuid"/>
+        </addColumn>
+
+        <!-- Backfill: каждому существующему пользователю и задаче — свой UUIDv7,
+             ссылка задачи — на uuid её владельца. -->
+        <sql>
+            update users set id_uuid = uuidv7();
+            update tasks set id_uuid = uuidv7();
+            update tasks t set user_id_uuid = u.id_uuid from users u where t.user_id = u.id;
+        </sql>
+
+        <!-- Переключение ключей: сначала связи и ограничения, затем старые колонки
+             (их sequence удаляются вместе с колонками). -->
+        <dropForeignKeyConstraint baseTableName="tasks" constraintName="fk_tasks_user"/>
+        <dropPrimaryKey tableName="users"/>
+        <dropPrimaryKey tableName="tasks"/>
+        <dropColumn tableName="users" columnName="id"/>
+        <dropColumn tableName="tasks" columnName="id"/>
+        <dropColumn tableName="tasks" columnName="user_id"/>
+
+        <renameColumn tableName="users" oldColumnName="id_uuid" newColumnName="id"/>
+        <renameColumn tableName="tasks" oldColumnName="id_uuid" newColumnName="id"/>
+        <renameColumn tableName="tasks" oldColumnName="user_id_uuid" newColumnName="user_id"/>
+
+        <!-- Имена и правила — как в миграциях 001 и 002. -->
+        <addNotNullConstraint tableName="tasks" columnName="user_id"/>
+        <addPrimaryKey tableName="users" columnNames="id" constraintName="pk_users"/>
+        <addPrimaryKey tableName="tasks" columnNames="id" constraintName="pk_tasks"/>
+        <addForeignKeyConstraint baseTableName="tasks" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_tasks_user" onDelete="CASCADE"/>
+        <createIndex tableName="tasks" indexName="ix_tasks_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <!-- Страховка: запись, вставленная вне приложения, тоже получит UUIDv7.
+             Приложение id всегда назначает само (см. User и Task). -->
+        <addDefaultValue tableName="users" columnName="id" defaultValueComputed="uuidv7()"/>
+        <addDefaultValue tableName="tasks" columnName="id" defaultValueComputed="uuidv7()"/>
+    </changeSet>
+
+</databaseChangeLog>

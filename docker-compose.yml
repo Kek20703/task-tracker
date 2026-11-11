@@ -2,7 +2,7 @@ name: task-tracker
 
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     container_name: task-tracker-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-task_tracker}

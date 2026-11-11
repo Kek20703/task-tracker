@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -54,8 +55,8 @@ class TaskConcurrencyIT {
 
     private final ExecutorService pool = Executors.newFixedThreadPool(2);
 
-    private Long userId;
-    private Long taskId;
+    private UUID userId;
+    private UUID taskId;
 
     @BeforeEach
     void setUp() {
