@@ -20,9 +20,21 @@ permissions:
   - action: glob
     resource: "*"
     effect: allow
+  - action: glob
+    resource: ".env*"
+    effect: deny
+  - action: glob
+    resource: "**/.env*"
+    effect: deny
   - action: grep
     resource: "*"
     effect: allow
+  - action: grep
+    resource: ".env*"
+    effect: deny
+  - action: grep
+    resource: "**/.env*"
+    effect: deny
   - action: shell
     resource: "git status*"
     effect: allow
