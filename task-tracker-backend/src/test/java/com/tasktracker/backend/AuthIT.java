@@ -1,6 +1,7 @@
 package com.tasktracker.backend;
 
 import com.tasktracker.backend.repository.UserRepository;
+import com.tasktracker.backend.service.WelcomeEmailService;
 import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -30,6 +32,9 @@ class AuthIT {
 
     private static final String EMAIL = "my@email.com";
     private static final String PASSWORD = "secret-password";
+
+    @MockitoBean
+    private WelcomeEmailService welcomeEmailService;
 
     @Autowired
     private MockMvc mockMvc;
