@@ -36,6 +36,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<ErrorDto> handleTaskNotFound(TaskNotFoundException ex) {
+        return error(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorDto> handleInvalidCredentials(InvalidCredentialsException ex) {
         return error(HttpStatus.UNAUTHORIZED, ex.getMessage());

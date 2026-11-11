@@ -49,6 +49,13 @@ public class UserService {
         return userRepository.findById(id).map(UserService::toResponse).orElseThrow(AccountNotFoundException::new);
     }
 
+    /** Проверка без загрузки пользователя — для операций, которым нужен только сам факт его существования. */
+    public void requireExisting(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new AccountNotFoundException();
+        }
+    }
+
     /** Поиск без учёта регистра — так же, как email сохраняется при регистрации. */
     public Optional<UserResponse> findByEmail(String email) {
         return userRepository.findByEmail(normalizeEmail(email)).map(UserService::toResponse);

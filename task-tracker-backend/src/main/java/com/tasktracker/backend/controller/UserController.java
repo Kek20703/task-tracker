@@ -3,7 +3,6 @@ package com.tasktracker.backend.controller;
 import com.tasktracker.backend.dto.CurrentUser;
 import com.tasktracker.backend.dto.RegisterRequest;
 import com.tasktracker.backend.dto.UserResponse;
-import com.tasktracker.backend.exception.AccountNotFoundException;
 import com.tasktracker.backend.service.AuthService;
 import com.tasktracker.backend.service.UserService;
 import jakarta.validation.Valid;
@@ -41,10 +40,6 @@ public class UserController {
 
     @GetMapping
     public UserResponse currentUser(@AuthenticationPrincipal CurrentUser currentUser) {
-        if (currentUser == null) {
-            // Запрос авторизован не нашим JWT-фильтром — пользователя приложения за ним нет.
-            throw new AccountNotFoundException();
-        }
-        return userService.getById(currentUser.id());
+        return userService.getById(CurrentUsers.requireId(currentUser));
     }
 }

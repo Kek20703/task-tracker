@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="002-create-tasks" author="Kek20703">
+        <createTable tableName="tasks">
+            <column name="id" type="bigint" autoIncrement="true" generationType="ALWAYS">
+                <constraints primaryKey="true" primaryKeyName="pk_tasks"/>
+            </column>
+            <!-- Владелец задачи. Удаление пользователя удаляет и его задачи. -->
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"
+                             foreignKeyName="fk_tasks_user"
+                             referencedTableName="users"
+                             referencedColumnNames="id"
+                             deleteCascade="true"/>
+            </column>
+            <column name="title" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(10000)" defaultValue="">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(16)" defaultValue="TODO">
+                <constraints nullable="false"/>
+            </column>
+            <!-- Когда задача помечена сделанной. По нему планировщик отбирает задачи за сутки. -->
+            <column name="completed_at" type="timestamp with time zone"/>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Список задач всегда запрашивается по владельцу. -->
+        <createIndex tableName="tasks" indexName="ix_tasks_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <!-- Инварианты, которые не должна нарушить даже ошибка в коде:
+             статус из известного набора, completed_at есть тогда и только тогда, когда задача сделана. -->
+        <sql>
+            alter table tasks add constraint ck_tasks_status check (status in ('TODO', 'DONE'));
+            alter table tasks add constraint ck_tasks_completed_at check ((status = 'DONE') = (completed_at is not null));
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
