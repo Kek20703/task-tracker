@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'jacoco'
 	id 'org.springframework.boot' version '4.1.2'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -33,6 +34,44 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy tasks.named('jacocoTestReport')
+}
+
+/**
+ * Покрытие считается по тестам из `test` (включая интеграционные).
+ * Класс запуска приложения — boilerplate Spring Boot, в покрытие не входит.
+ */
+def coverageExcludes = ['com/tasktracker/emailsender/EmailSenderApplication.class']
+
+tasks.named('jacocoTestReport') {
+	dependsOn tasks.named('test')
+	classDirectories.setFrom(files(classDirectories.files.collect {
+		fileTree(dir: it, exclude: coverageExcludes)
+	}))
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
+tasks.named('jacocoTestCoverageVerification') {
+	dependsOn tasks.named('test')
+	classDirectories.setFrom(files(classDirectories.files.collect {
+		fileTree(dir: it, exclude: coverageExcludes)
+	}))
+	violationRules {
+		rule {
+			limit {
+				counter = 'LINE'
+				value = 'COVEREDRATIO'
+				minimum = 0.70
+			}
+		}
+	}
+}
+
+tasks.named('check') {
+	dependsOn tasks.named('jacocoTestCoverageVerification')
 }
 
 tasks.withType(JavaCompile).configureEach {

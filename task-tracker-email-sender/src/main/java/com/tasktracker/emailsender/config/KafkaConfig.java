@@ -53,7 +53,15 @@ public class KafkaConfig {
 		DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
 				kafkaTemplate,
 				(record, exception) -> new TopicPartition(EMAIL_SENDING_TASKS_DEAD_LETTER, record.partition()));
-		// FixedBackOff считает повторы после первой попытки, поэтому вычитаем её.
-		return new DefaultErrorHandler(recoverer, new FixedBackOff(retryIntervalMs, Math.max(0, maxAttempts - 1)));
+		return new DefaultErrorHandler(recoverer, retryPolicy(maxAttempts, retryIntervalMs));
+	}
+
+	/**
+	 * Пауза и число повторов для обработчика ошибок. {@link FixedBackOff} считает повторы
+	 * после первой попытки, поэтому из «всего попыток» вычитается одна: при maxAttempts = 3
+	 * письмо отправляется три раза, а не четыре.
+	 */
+	static FixedBackOff retryPolicy(long maxAttempts, long intervalMs) {
+		return new FixedBackOff(intervalMs, Math.max(0, maxAttempts - 1));
 	}
 }
