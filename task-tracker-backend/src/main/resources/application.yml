@@ -1,6 +1,17 @@
 spring:
   application:
     name: task-tracker-backend
+  kafka:
+    # Адрес брокера: localhost:29092 — для запуска из IDE, kafka:9092 — из контейнера.
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        # Потребитель — другой сервис, его DTO здесь нет: тип задаётся настройкой, а не заголовком.
+        spring.json.add.type.headers: false
+        # Недоступная Kafka не должна задерживать регистрацию.
+        max.block.ms: ${KAFKA_MAX_BLOCK_MS:1000}
   datasource:
     # Значения по умолчанию — для запуска из IDE рядом с docker compose.
     # В контейнере переопределяются переменными SPRING_DATASOURCE_URL и т.д.
