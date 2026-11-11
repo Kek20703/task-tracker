@@ -18,6 +18,8 @@
 
 - Java 17. В PATH её нет: перед запуском Gradle выставлять `JAVA_HOME` на JDK из `~/.jdks/ms-17*`.
 - Собирать через Gradle wrapper (`./gradlew`) внутри папки сервиса.
+- `./gradlew check` — тесты и проверка покрытия JaCoCo (порог 70% строк). Отчёт —
+  `build/reports/jacoco/test/html/index.html`.
 - Имя пользователя Windows содержит кириллицу, из-за чего Java падает с
   `Unable to establish loopback connection`. Перед запуском Gradle из терминала выставлять
   `JAVA_TOOL_OPTIONS=-Djdk.net.unixdomain.tmpdir=C:/Windows/Temp`.

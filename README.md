@@ -37,7 +37,11 @@ docker compose up -d
 cd task-tracker-backend
 ./gradlew bootRun    # сервис на http://localhost:8080
 ./gradlew test       # тесты; для интеграционных нужен запущенный Docker
+./gradlew check      # тесты + проверка покрытия JaCoCo (не ниже 70% строк)
 ```
+
+Отчёт о покрытии — `build/reports/jacoco/test/html/index.html`. Покрытие считается по всем
+тестам из `test`, включая интеграционные; класс запуска приложения в подсчёт не входит.
 
 При запуске из IntelliJ IDEA переменную нужно задать в конфигурации запуска:
 Run → Edit Configurations → Environment variables → `POSTGRES_PASSWORD=<пароль из .env>`.
@@ -67,6 +71,7 @@ http://localhost:8080/swagger-ui.html (описание в формате OpenAP
 cd task-tracker-email-sender
 ./gradlew bootRun   # подключается к Kafka и слушает топик EMAIL_SENDING_TASKS
 ./gradlew test      # тесты; для интеграционных (Kafka в Testcontainers) нужен запущенный Docker
+./gradlew check     # тесты + проверка покрытия JaCoCo (не ниже 70% строк)
 ```
 
 Пойманные письма видны в Mailpit: http://localhost:8025. Проверить вручную можно так — положить
