@@ -60,7 +60,10 @@ class WelcomeEmailIT {
         assertThat(record.key()).isEqualTo("user@example.com");
         assertThat(record.headers().lastHeader("__TypeId__")).isNull();
         assertThat(record.value()).isEqualTo(new EmailMessage(
-                "user@example.com", WelcomeEmailService.SUBJECT, WelcomeEmailService.TEXT));
+                "user@example.com",
+                "Добро пожаловать в Task Tracker",
+                "Здравствуйте! Вы успешно зарегистрировались в Task Tracker. "
+                        + "Теперь можно создавать задачи и отмечать выполненные."));
     }
 
     private ConsumerRecord<String, EmailMessage> readMessage() {

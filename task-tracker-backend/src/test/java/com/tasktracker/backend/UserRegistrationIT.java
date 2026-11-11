@@ -2,6 +2,7 @@ package com.tasktracker.backend;
 
 import com.tasktracker.backend.entity.User;
 import com.tasktracker.backend.repository.UserRepository;
+import com.tasktracker.backend.service.WelcomeEmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -25,6 +27,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class UserRegistrationIT {
+
+    @MockitoBean
+    private WelcomeEmailService welcomeEmailService;
 
     @Autowired
     private MockMvc mockMvc;

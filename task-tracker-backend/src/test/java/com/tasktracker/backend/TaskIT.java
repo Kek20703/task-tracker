@@ -3,6 +3,7 @@ package com.tasktracker.backend;
 import com.tasktracker.backend.entity.Task;
 import com.tasktracker.backend.repository.TaskRepository;
 import com.tasktracker.backend.repository.UserRepository;
+import com.tasktracker.backend.service.WelcomeEmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
@@ -34,6 +36,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TaskIT {
 
     private static final String ISO_INSTANT = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z";
+
+    @MockitoBean
+    private WelcomeEmailService welcomeEmailService;
 
     @Autowired
     private MockMvc mockMvc;

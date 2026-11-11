@@ -40,7 +40,10 @@ class WelcomeEmailServiceTest {
         verify(kafkaTemplate).send(eq(WelcomeEmailService.EMAIL_SENDING_TASKS),
                 eq("user@example.com"), message.capture());
         assertThat(message.getValue()).isEqualTo(new EmailMessage(
-                "user@example.com", WelcomeEmailService.SUBJECT, WelcomeEmailService.TEXT));
+                "user@example.com",
+                "Добро пожаловать в Task Tracker",
+                "Здравствуйте! Вы успешно зарегистрировались в Task Tracker. "
+                        + "Теперь можно создавать задачи и отмечать выполненные."));
     }
 
     @Test

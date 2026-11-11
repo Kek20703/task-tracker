@@ -19,8 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest(properties = {
-        "spring.kafka.bootstrap-servers=localhost:1",
-        "spring.kafka.producer.properties.max.block.ms=100"
+        "spring.kafka.bootstrap-servers=localhost:1"
 })
 @AutoConfigureMockMvc
 class WelcomeEmailFailureIT {
