@@ -28,7 +28,7 @@
 | 3 | Backend: JWT, вход, текущий пользователь | — | сделано | #3 |
 | 4 | Backend: задачи | — | сделано | #6 |
 | 5 | Email sender | — | сделано | #9 |
-| 6 | Приветственное письмо | [06-welcome-email.md](specs/06-welcome-email.md) | следующий | |
+| 6 | Приветственное письмо | [06-welcome-email.md](specs/06-welcome-email.md) | в работе (feature/welcome-email) | |
 | 7 | Summarization-сервис | — | — | |
 | 8 | Scheduler | — | — | |
 | 9 | Docker-образы, CI/CD, деплой | — | — | |

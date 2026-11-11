@@ -16,16 +16,21 @@ public class AuthService {
     private final UserService userService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final WelcomeEmailService welcomeEmailService;
 
-    public AuthService(UserService userService, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public AuthService(UserService userService, JwtService jwtService,
+                       AuthenticationManager authenticationManager, WelcomeEmailService welcomeEmailService) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
+        this.welcomeEmailService = welcomeEmailService;
     }
 
-    /** Регистрирует пользователя и сразу выдаёт токен — отдельный вход после регистрации не нужен. */
+    /** Регистрирует пользователя, отправляет приветственное письмо и сразу выдаёт токен. */
     public AuthResult register(RegisterRequest request) {
-        return withToken(userService.register(request));
+        UserResponse user = userService.register(request);
+        welcomeEmailService.send(user);
+        return withToken(user);
     }
 
     public AuthResult login(LoginRequest request) {

@@ -1,6 +1,8 @@
 package com.tasktracker.backend.service;
 
 import com.tasktracker.backend.dto.LoginRequest;
+import com.tasktracker.backend.dto.RegisterRequest;
+import com.tasktracker.backend.dto.UserResponse;
 import com.tasktracker.backend.exception.InvalidCredentialsException;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -12,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -20,9 +23,22 @@ class AuthServiceTest {
     private final UserService userService = mock(UserService.class);
     private final JwtService jwtService = mock(JwtService.class);
     private final AuthenticationManager authenticationManager = mock(AuthenticationManager.class);
-    private final AuthService authService = new AuthService(userService, jwtService, authenticationManager);
+    private final WelcomeEmailService welcomeEmailService = mock(WelcomeEmailService.class);
+    private final AuthService authService = new AuthService(
+            userService, jwtService, authenticationManager, welcomeEmailService);
 
     private final LoginRequest request = new LoginRequest("my@email.com", "secret-password");
+
+    @Test
+    void registrationSendsWelcomeEmail() {
+        RegisterRequest registerRequest = new RegisterRequest("my@email.com", "secret-password");
+        UserResponse user = new UserResponse(1L, "my@email.com");
+        when(userService.register(registerRequest)).thenReturn(user);
+        when(jwtService.issue(1L, "my@email.com")).thenReturn("token");
+
+        assertThat(authService.register(registerRequest).accessToken()).isEqualTo("token");
+        verify(welcomeEmailService).send(user);
+    }
 
     @Test
     void badCredentialsBecomeInvalidCredentials() {
