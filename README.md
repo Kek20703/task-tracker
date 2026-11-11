@@ -51,6 +51,10 @@ Run → Edit Configurations → Environment variables → `POSTGRES_PASSWORD=<п
 
 Java 17, Spring Boot, Gradle, Postgres, Liquibase, Kafka, Docker, GitHub Actions.
 
+## План
+
+Этапы разработки и их статус — в [docs/PLAN.md](docs/PLAN.md).
+
 ## Ветки
 
 - `master` — стабильная ветка, из неё собираются Docker-образы.
