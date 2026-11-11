@@ -1,0 +1,23 @@
+### Регистрация (JSON)
+POST http://localhost:8080/user
+Content-Type: application/json
+
+{
+  "email": "my@email.com",
+  "password": "secret-password"
+}
+
+### Регистрация (форма)
+POST http://localhost:8080/user
+Content-Type: application/x-www-form-urlencoded
+
+email=form@email.com&password=secret-password
+
+### Ошибка: email уже занят (409)
+POST http://localhost:8080/user
+Content-Type: application/json
+
+{
+  "email": "my@email.com",
+  "password": "another-password"
+}

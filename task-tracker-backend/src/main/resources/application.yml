@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: task-tracker-backend
+  datasource:
+    # Значения по умолчанию — для запуска из IDE рядом с docker compose.
+    # В контейнере переопределяются переменными SPRING_DATASOURCE_URL и т.д.
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:task_tracker}
+    username: ${POSTGRES_USER:task_tracker}
+    password: ${POSTGRES_PASSWORD}
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+  web:
+    resources:
+      add-mappings: false
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+server:
+  port: 8080
+
+jwt:
+  # Секрет подписи токенов, не короче 32 байт. Задаётся только через окружение.
+  secret: ${JWT_SECRET}
+  # Срок жизни access token. Refresh token нет, поэтому срок сравнительно длинный.
+  ttl: ${JWT_TTL:24h}

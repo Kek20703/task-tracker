@@ -14,9 +14,46 @@
 
 Инфраструктура: Postgres, Kafka. Всё запускается через Docker Compose.
 
+## Локальный запуск инфраструктуры
+
+```bash
+cp .env.example .env   # и задать свои POSTGRES_PASSWORD и JWT_SECRET
+docker compose up -d
+```
+
+| Что | Адрес с хоста | Адрес внутри compose-сети |
+|-----|---------------|---------------------------|
+| Postgres | `localhost:5432` | `postgres:5432` |
+| Kafka | `localhost:29092` | `kafka:9092` |
+| SMTP (Mailpit) | `localhost:1025` | `mailpit:1025` |
+| Пойманные письма | http://localhost:8025 | — |
+
+## Запуск backend из исходников
+
+Нужны JDK 17 и поднятая инфраструктура (см. выше). Пароль базы сервис берёт из переменной
+окружения `POSTGRES_PASSWORD` — той же, что в `.env`. Оттуда же берётся `JWT_SECRET`.
+
+```bash
+cd task-tracker-backend
+./gradlew bootRun    # сервис на http://localhost:8080
+./gradlew test       # тесты; для интеграционных нужен запущенный Docker
+```
+
+При запуске из IntelliJ IDEA переменную нужно задать в конфигурации запуска:
+Run → Edit Configurations → Environment variables → `POSTGRES_PASSWORD=<пароль из .env>`.
+Без неё сервис не стартует с ошибкой `password authentication failed`.
+
+Секрет подписи токенов сервис берёт из `JWT_SECRET` (не короче 32 символов) — его нужно задать так же.
+
+Примеры запросов — в `task-tracker-backend/http/*.http` (REST Client в IntelliJ IDEA).
+
 ## Стек
 
-Java 17, Spring Boot, Gradle, Postgres, Flyway, Kafka, Docker, GitHub Actions.
+Java 17, Spring Boot, Gradle, Postgres, Liquibase, Kafka, Docker, GitHub Actions.
+
+## План
+
+Этапы разработки и их статус — в [docs/PLAN.md](docs/PLAN.md).
 
 ## Ветки
 
