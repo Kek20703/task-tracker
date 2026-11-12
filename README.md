@@ -142,6 +142,30 @@ SCHEDULER_RUN_ON_STARTUP=true ./gradlew bootRun
 `SCHEDULER_CRON`, `SUMMARIZATION_TIMEOUT`, `SUMMARIZATION_REQUESTS_TOPIC`,
 `SUMMARIZATION_RESPONSES_TOPIC`, `EMAIL_SENDING_TASKS_TOPIC`.
 
+## Деплой в Docker
+
+Полный стек описан в `docker-compose.prod.yml`: backend, email-sender, summarization, scheduler,
+Postgres, Kafka и Mailpit. Backend публикуется на порту 80, поэтому приложение открывается по
+`http://<server_ip>`.
+
+```bash
+cp .env.example .env   # заполнить POSTGRES_PASSWORD, JWT_SECRET, SMTP и LLM при необходимости
+docker compose -f docker-compose.prod.yml config
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Для существующего тома Postgres базу `summarization` нужно создать один раз вручную:
+
+```bash
+docker exec -it task-tracker-postgres \
+  psql -U task_tracker -d postgres -c "CREATE DATABASE summarization OWNER task_tracker;"
+```
+
+На сервере без исходников используйте образы из Docker Hub: задайте `DOCKER_NAMESPACE` и
+выполните `docker compose -f docker-compose.prod.yml pull` вместо `--build`. Для публикации
+образов в GitHub Actions нужны секреты `DOCKERHUB_USERNAME` и `DOCKERHUB_TOKEN`.
+Swagger на сервере по умолчанию выключен (`SWAGGER_ENABLED=false`).
+
 ## Стек
 
 Java 17, Spring Boot, Gradle, Postgres, Liquibase, Kafka, Docker, GitHub Actions.
