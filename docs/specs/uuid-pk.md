@@ -23,7 +23,7 @@ id раскрывают количество пользователей и за�
   - замена `Long` → `UUID` в сущностях, DTO, JWT, сервисах, контроллерах, тестах и `.http`-коллекции.
 - **PR 2 (Spring Data JDBC), отдельная ветка после слияния PR 1:**
   - `spring-boot-starter-data-jpa` → `spring-boot-starter-data-jdbc` (и тестовый starter);
-  - сущности на `@Table`/`@Column` Spring Data Relational, `Persistable<UUID>` для детекции новой записи;
+  - сущности на `@Table`/`@Column` Spring Data Relational, `@Version` для детекции новой записи;
   - `CrudRepository` вместо `JpaRepository`;
   - блокировка задачи `@Query("... FOR UPDATE")` вместо `@Lock(PESSIMISTIC_WRITE)`;
   - `created_at` через `@CreatedDate` + JDBC-аудит (или установку в коде);
@@ -67,6 +67,8 @@ id раскрывают количество пользователей и за�
   6. уникальный индекс `uq_users_email_lower` и check-констрейнты `tasks` не затрагиваются.
 - Колонки `id` — `uuid` без autoIncrement с `default uuidv7()`: новые id генерирует приложение
   (uuid-creator), дефолт в базе — страховка для записей вне приложения.
+- **Миграция `004-spring-data-jdbc.xml`:** колонка `version bigint not null default 0` в `users`
+  и `tasks`; по ней Spring Data JDBC отличает новую сущность от загруженной (`@Version`).
 - `status` в `tasks` хранится строкой `TODO`/`DONE`; в Spring Data JDBC проверить маппинг enum
   по имени (при необходимости — `@Enum` или конвертер).
 - После PR 1 `ddl-auto: validate` проходит: сущность `UUID` ↔ колонка `uuid`.
@@ -93,27 +95,27 @@ id раскрывают количество пользователей и за�
 
 PR 1:
 
-- [ ] `docker-compose.yml` и Testcontainers используют `postgres:18-alpine`.
-- [ ] Миграция `003` переносит данные: старые `bigint`-колонки удалены, PK/FK/индексы восстановлены.
-- [ ] API принимает и возвращает UUID; JWT `sub` — UUID; `.http`-коллекция обновлена.
-- [ ] `./gradlew check` зелёный, покрытие не ниже 70%.
+- [x] `docker-compose.yml` и Testcontainers используют `postgres:18-alpine`.
+- [x] Миграция `003` переносит данные: старые `bigint`-колонки удалены, PK/FK/индексы восстановлены.
+- [x] API принимает и возвращает UUID; JWT `sub` — UUID; `.http`-коллекция обновлена.
+- [x] `./gradlew check` зелёный, покрытие не ниже 70%.
 
 PR 2:
 
-- [ ] JPA/Hibernate удалён из зависимостей backend; сущности — `@Table` Spring Data Relational,
+- [x] JPA/Hibernate удалён из зависимостей backend; сущности — `@Table` Spring Data Relational,
   репозитории — `CrudRepository`.
-- [ ] Блокировка задач — `@Query ... FOR UPDATE`; тест параллельных автосохранений зелёный.
-- [ ] `created_at` заполняется при вставке (`@CreatedDate`/аудит или в коде).
-- [ ] Разбор ошибок целостности без классов Hibernate; регистрация существующего email — `409`.
-- [ ] `ArchitectureTest` проверяет `@Table` вместо JPA-аннотаций; правила не ослаблены.
-- [ ] `./gradlew check` зелёный, покрытие не ниже 70%.
+- [x] Блокировка задач — `@Query ... FOR UPDATE`; тест параллельных автосохранений зелёный.
+- [x] `created_at` заполняется при вставке (`@CreatedDate`/аудит или в коде).
+- [x] Разбор ошибок целостности без классов Hibernate; регистрация существующего email — `409`.
+- [x] `ArchitectureTest` проверяет `@Table` вместо JPA-аннотаций; правила не ослаблены.
+- [x] `./gradlew check` зелёный, покрытие не ниже 70%.
 
 ## Проверки
 
-- [ ] `./gradlew check` в `task-tracker-backend` после каждого PR.
-- [ ] Ручной прогон: поднять compose, применить миграцию `003` на базе с данными, пройти
+- [x] `./gradlew check` в `task-tracker-backend` после каждого PR.
+- [x] Ручной прогон: поднять compose, применить миграцию `003` на базе с данными, пройти
       регистрацию и операции с задачами через `.http`, убедиться, что id — UUID.
-- [ ] Проверить, что запрос со старым токеном даёт `401`, а повторный вход — новый токен.
+- [x] Проверить, что запрос со старым токеном даёт `401`, а повторный вход — новый токен.
 
 ## Открытые вопросы
 

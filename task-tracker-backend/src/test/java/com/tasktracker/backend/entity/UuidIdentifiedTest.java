@@ -11,10 +11,6 @@ class UuidIdentifiedTest {
     void assignsVersion7IdBeforeInsert() {
         User user = new User("user@example.com", "hash");
 
-        assertThat(user.getId()).as("новая сущность без id").isNull();
-
-        user.assignId();
-
         assertThat(user.getId()).isNotNull();
         assertThat(user.getId().version()).as("UUIDv7, а не случайный v4").isEqualTo(7);
     }
@@ -23,9 +19,6 @@ class UuidIdentifiedTest {
     void idsAreMonotonicInCreationOrder() {
         User first = new User("first@email.com", "hash");
         User second = new User("second@email.com", "hash");
-
-        first.assignId();
-        second.assignId();
 
         // Сортировка задач по id остаётся порядком создания.
         assertThat(first.getId()).isLessThan(second.getId());

@@ -92,15 +92,15 @@ class UserRegistrationIT {
 
     @Test
     void databaseItselfRejectsDuplicateEmailIgnoringCase() {
-        userRepository.saveAndFlush(new User("my@email.com", "hash"));
+        userRepository.save(new User("my@email.com", "hash"));
 
-        assertThatThrownBy(() -> userRepository.saveAndFlush(new User("MY@EMAIL.COM", "hash")))
+        assertThatThrownBy(() -> userRepository.save(new User("MY@EMAIL.COM", "hash")))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test
     void createdAtIsAvailableRightAfterSave() {
-        User saved = userRepository.saveAndFlush(new User("my@email.com", "hash"));
+        User saved = userRepository.save(new User("my@email.com", "hash"));
 
         assertThat(saved.getCreatedAt()).isNotNull();
     }

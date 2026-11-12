@@ -110,7 +110,9 @@
 ## Принятые решения
 
 - **Структура:** один репозиторий, четыре независимых Gradle-проекта по папкам, общий `docker-compose.yml`.
-- **Стек:** Java 17, Spring Boot 4.1, Gradle, Postgres 17, Kafka 4 (KRaft), Liquibase с XML.
+- **Стек:** Java 17, Spring Boot 4.1, Gradle, Postgres 18, Kafka 4 (KRaft), Liquibase с XML.
+- **Persistence:** Spring Data JDBC без JPA/Hibernate; первичные ключи — UUIDv7, новая запись
+  отличается по `@Version`, `created_at` заполняется аудитом Spring Data JDBC.
 - **Фронтенда нет:** только REST API и `.http`-коллекция. SPA — возможный отдельный этап после девятого.
 - **Swagger UI** (springdoc) на `/swagger-ui.html` — для ручной проверки API, открыт без авторизации,
   как и описание `/v3/api-docs`. Выключается переменной `SWAGGER_ENABLED=false`; перед деплоем
@@ -154,12 +156,6 @@
 
 ## Долги
 
-- **Перед этапом 7.** Перейти с Spring Data JPA/Hibernate на Spring Data JDBC:
-  `CrudRepository` вместо `JpaRepository`, `@Table`/`@Column` Spring Data Relational, `Persistable`
-  для назначенных UUID, `@Query ... FOR UPDATE` вместо `@Lock`, `created_at` через `@CreatedDate`
-  или установку в коде, разбор `DataIntegrityViolationException` без Hibernate-исключений.
-  `ArchitectureTest` перевести с JPA-аннотаций на `@Table`, не ослабляя правила. Отдельный PR;
-  UUIDv7 и PostgreSQL 18 уже сделаны (#22).
 - **Без срока.** Гарантированная доставка приветственного письма: outbox или повторная публикация,
   если Kafka была недоступна. Сейчас письмо может потеряться. Из постановки этапа 6.
 - **Этап 9.** За обратным прокси задать `server.forward-headers-strategy`, иначе Swagger покажет

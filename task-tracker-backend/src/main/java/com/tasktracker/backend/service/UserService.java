@@ -33,7 +33,7 @@ public class UserService {
         }
         User user = new User(email, passwordEncoder.encode(request.password()));
         try {
-            user = userRepository.saveAndFlush(user);
+            user = userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
             // Два одновременных запроса с одним email: проверку выше прошли оба,
             // но уникальный индекс в БД пропустил только один.
@@ -62,7 +62,7 @@ public class UserService {
         return userRepository.findByEmail(normalizeEmail(email)).map(UserService::toResponse);
     }
 
-    /** Данные для проверки пароля. Наружу из сервиса уходит запись, а не JPA-сущность. */
+    /** Данные для проверки пароля. Наружу из сервиса уходит запись, а не сущность. */
     public Optional<UserCredentials> findCredentialsByEmail(String email) {
         return userRepository.findByEmail(normalizeEmail(email))
                 .map(user -> new UserCredentials(user.getEmail(), user.getPassword()));

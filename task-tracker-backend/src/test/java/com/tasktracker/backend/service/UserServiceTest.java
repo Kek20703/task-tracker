@@ -25,7 +25,7 @@ class UserServiceTest {
         // Проверка existsByEmail прошла, но параллельный запрос успел вставить запись первым.
         when(userRepository.existsByEmail("my@email.com")).thenReturn(false);
         when(passwordEncoder.encode("secret-password")).thenReturn("hash");
-        when(userRepository.saveAndFlush(any(User.class)))
+        when(userRepository.save(any(User.class)))
                 .thenThrow(new DataIntegrityViolationException("duplicate key"));
 
         assertThatThrownBy(() -> userService.register(new RegisterRequest("my@email.com", "secret-password")))
