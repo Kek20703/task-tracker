@@ -29,7 +29,7 @@
 | 4 | Backend: задачи | — | сделано | #6 |
 | 5 | Email sender | — | сделано | #9 |
 | 6 | Приветственное письмо | [06-welcome-email.md](specs/06-welcome-email.md) | сделано | #16 |
-| 7 | Summarization-сервис | [07-summarization.md](specs/07-summarization.md) | в работе (feature/summarization) | |
+| 7 | Summarization-сервис | [07-summarization.md](specs/07-summarization.md) | сделано | #25 |
 | 8 | Scheduler | — | — | |
 | 9 | Docker-образы, CI/CD, деплой | — | — | |
 
