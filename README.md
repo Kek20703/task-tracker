@@ -119,6 +119,29 @@ cd task-tracker-summarization-server
 `SUMMARIZATION_REQUESTS_TOPIC`, `SUMMARIZATION_RESPONSES_TOPIC`, `LLM_BASE_URL`, `LLM_API_KEY`,
 `LLM_MODEL`, `LLM_TIMEOUT`. При ошибке или таймауте LLM сервис отвечает шаблонным отчётом.
 
+## Запуск scheduler из исходников
+
+Scheduler раз в сутки читает задачи из Postgres, запрашивает отчёт у summarization-сервиса и
+публикует письмо в `EMAIL_SENDING_TASKS`. Нужны JDK 17, запущенные Postgres, Kafka и
+summarization-сервис.
+
+```bash
+cd task-tracker-scheduler
+./gradlew bootRun   # ждёт полночь по SCHEDULER_ZONE
+./gradlew test      # Postgres и Kafka в Testcontainers, нужен Docker
+./gradlew check     # тесты + покрытие JaCoCo
+```
+
+Для ручного запуска без ожидания полуночи:
+
+```bash
+SCHEDULER_RUN_ON_STARTUP=true ./gradlew bootRun
+```
+
+Настройки: `KAFKA_BOOTSTRAP_SERVERS`, `POSTGRES_*`, `POSTGRES_DB`, `SCHEDULER_ZONE`,
+`SCHEDULER_CRON`, `SUMMARIZATION_TIMEOUT`, `SUMMARIZATION_REQUESTS_TOPIC`,
+`SUMMARIZATION_RESPONSES_TOPIC`, `EMAIL_SENDING_TASKS_TOPIC`.
+
 ## Стек
 
 Java 17, Spring Boot, Gradle, Postgres, Liquibase, Kafka, Docker, GitHub Actions.
