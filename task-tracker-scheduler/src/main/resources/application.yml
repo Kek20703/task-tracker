@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: task-tracker-scheduler
+  main:
+    web-application-type: none
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: task-tracker-scheduler
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        spring.json.use.type.headers: false
+        spring.json.trusted.packages: com.tasktracker.scheduler.dto
+        spring.json.value.default.type: com.tasktracker.scheduler.dto.SummarizationResponse
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:task_tracker}
+    username: ${POSTGRES_USER:task_tracker}
+    password: ${POSTGRES_PASSWORD}
+
+scheduler:
+  zone: ${SCHEDULER_ZONE:UTC}
+  cron: ${SCHEDULER_CRON:0 0 0 * * *}
+  request-timeout: ${SUMMARIZATION_TIMEOUT:30s}
+  run-on-startup: ${SCHEDULER_RUN_ON_STARTUP:false}
+
+summarization:
+  requests-topic: ${SUMMARIZATION_REQUESTS_TOPIC:SUMMARIZATION_REQUESTS}
+  responses-topic: ${SUMMARIZATION_RESPONSES_TOPIC:SUMMARIZATION_RESPONSES}
+
+email:
+  topic: ${EMAIL_SENDING_TASKS_TOPIC:EMAIL_SENDING_TASKS}
