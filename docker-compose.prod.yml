@@ -65,6 +65,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JWT_SECRET: ${JWT_SECRET:?задайте JWT_SECRET в .env}
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      SERVER_FORWARD_HEADERS_STRATEGY: ${SERVER_FORWARD_HEADERS_STRATEGY:-native}
     depends_on:
       postgres:
         condition: service_healthy

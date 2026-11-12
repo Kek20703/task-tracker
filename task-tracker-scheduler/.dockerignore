@@ -1,3 +1,7 @@
 .gradle
 build
+.env
+.env.*
+.idea
+*.iml
 
