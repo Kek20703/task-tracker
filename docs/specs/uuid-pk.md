@@ -23,7 +23,7 @@ id раскрывают количество пользователей и за�
   - замена `Long` → `UUID` в сущностях, DTO, JWT, сервисах, контроллерах, тестах и `.http`-коллекции.
 - **PR 2 (Spring Data JDBC), отдельная ветка после слияния PR 1:**
   - `spring-boot-starter-data-jpa` → `spring-boot-starter-data-jdbc` (и тестовый starter);
-  - сущности на `@Table`/`@Column` Spring Data Relational, `Persistable<UUID>` для детекции новой записи;
+  - сущности на `@Table`/`@Column` Spring Data Relational, `@Version` для детекции новой записи;
   - `CrudRepository` вместо `JpaRepository`;
   - блокировка задачи `@Query("... FOR UPDATE")` вместо `@Lock(PESSIMISTIC_WRITE)`;
   - `created_at` через `@CreatedDate` + JDBC-аудит (или установку в коде);
@@ -67,6 +67,8 @@ id раскрывают количество пользователей и за�
   6. уникальный индекс `uq_users_email_lower` и check-констрейнты `tasks` не затрагиваются.
 - Колонки `id` — `uuid` без autoIncrement с `default uuidv7()`: новые id генерирует приложение
   (uuid-creator), дефолт в базе — страховка для записей вне приложения.
+- **Миграция `004-spring-data-jdbc.xml`:** колонка `version bigint not null default 0` в `users`
+  и `tasks`; по ней Spring Data JDBC отличает новую сущность от загруженной (`@Version`).
 - `status` в `tasks` хранится строкой `TODO`/`DONE`; в Spring Data JDBC проверить маппинг enum
   по имени (при необходимости — `@Enum` или конвертер).
 - После PR 1 `ddl-auto: validate` проходит: сущность `UUID` ↔ колонка `uuid`.

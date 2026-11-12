@@ -8,7 +8,6 @@ import com.tasktracker.backend.entity.TaskStatus;
 import com.tasktracker.backend.exception.AccountNotFoundException;
 import com.tasktracker.backend.exception.TaskNotFoundException;
 import com.tasktracker.backend.repository.TaskRepository;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -48,7 +48,7 @@ public class TaskService {
         String description = request.description() == null ? "" : request.description();
         Task task = new Task(userId, request.title().strip(), description);
         try {
-            return toResponse(taskRepository.saveAndFlush(task));
+            return toResponse(taskRepository.save(task));
         } catch (DataIntegrityViolationException e) {
             if (violatesOwnerForeignKey(e)) {
                 // Пользователя удалили между проверкой и вставкой — внешний ключ не пустил задачу.
@@ -70,7 +70,7 @@ public class TaskService {
         if (request.status() != null) {
             task.changeStatus(TaskStatus.valueOf(request.status()), now());
         }
-        return toResponse(taskRepository.saveAndFlush(task));
+        return toResponse(taskRepository.save(task));
     }
 
     public void delete(UUID userId, UUID taskId) {
@@ -84,8 +84,9 @@ public class TaskService {
     }
 
     private static boolean violatesOwnerForeignKey(DataIntegrityViolationException e) {
-        return e.getCause() instanceof ConstraintViolationException violation
-                && OWNER_FOREIGN_KEY.equalsIgnoreCase(violation.getConstraintName());
+        Throwable cause = e.getMostSpecificCause();
+        String message = cause.getMessage();
+        return message != null && message.toLowerCase(Locale.ROOT).contains(OWNER_FOREIGN_KEY);
     }
 
     /** Postgres хранит время с точностью до микросекунд — обрезаем сразу, чтобы ответ совпадал с базой. */

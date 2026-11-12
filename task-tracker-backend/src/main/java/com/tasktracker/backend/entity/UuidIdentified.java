@@ -1,29 +1,26 @@
 package com.tasktracker.backend.entity;
 
 import com.github.f4b6a3.uuid.UuidCreator;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PrePersist;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 
 import java.util.UUID;
 
 /**
- * Первичный ключ — UUIDv7. Назначается приложением перед вставкой; в базе на колонке есть
+ * Первичный ключ — UUIDv7. Назначается приложением при создании сущности; в базе на колонке есть
  * {@code default uuidv7()} как страховка для записей вне приложения.
  * UUIDv7 монотонны по времени: индекс остаётся дружелюбным, а количество записей наружу не раскрывают.
+ *
+ * <p>{@link Version} нужен Spring Data JDBC, чтобы отличить новую сущность от загруженной:
+ * у новой версия {@code null}, после вставки и загрузки — число.
  */
-@MappedSuperclass
 public abstract class UuidIdentified {
 
     @Id
-    private UUID id;
+    private UUID id = UuidCreator.getTimeOrderedEpoch();
 
-    @PrePersist
-    void assignId() {
-        if (id == null) {
-            id = UuidCreator.getTimeOrderedEpoch();
-        }
-    }
+    @Version
+    private Long version;
 
     public UUID getId() {
         return id;

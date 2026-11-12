@@ -33,7 +33,7 @@ public class UserService {
         }
         User user = new User(email, passwordEncoder.encode(request.password()));
         try {
-            user = userRepository.saveAndFlush(user);
+            user = userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
             // Два одновременных запроса с одним email: проверку выше прошли оба,
             // но уникальный индекс в БД пропустил только один.
