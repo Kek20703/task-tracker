@@ -1,35 +1,24 @@
 package com.tasktracker.backend.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-import org.hibernate.annotations.Generated;
-import org.hibernate.generator.EventType;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
 
-@Entity
-@Table(name = "users")
-public class User {
+@Table("users")
+public class User extends UuidIdentified {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, length = 254)
+    @Column("email")
     private String email;
 
     /** Хеш пароля (BCrypt), не сам пароль. */
-    @Column(nullable = false, length = 100)
+    @Column("password")
     private String password;
 
-    /** Заполняется базой при вставке и сразу перечитывается. */
-    @Generated(event = EventType.INSERT)
-    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    /** Заполняется аудитом Spring Data JDBC при вставке. */
+    @CreatedDate
+    @Column("created_at")
     private Instant createdAt;
 
     protected User() {
@@ -38,10 +27,6 @@ public class User {
     public User(String email, String password) {
         this.email = email;
         this.password = password;
-    }
-
-    public Long getId() {
-        return id;
     }
 
     public String getEmail() {

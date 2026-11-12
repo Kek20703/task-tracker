@@ -9,5 +9,7 @@
          Уже применённые файлы не редактируются. -->
     <include file="changes/001-create-users.xml" relativeToChangelogFile="true"/>
     <include file="changes/002-create-tasks.xml" relativeToChangelogFile="true"/>
+    <include file="changes/003-uuid-pk.xml" relativeToChangelogFile="true"/>
+    <include file="changes/004-spring-data-jdbc.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

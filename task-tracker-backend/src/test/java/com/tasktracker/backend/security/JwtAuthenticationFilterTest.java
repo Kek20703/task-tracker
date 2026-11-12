@@ -13,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class JwtAuthenticationFilterTest {
 
     private static final String SECRET = "test-only-jwt-secret-0123456789-abcdefghij";
+    private static final UUID USER_ID = UUID.fromString("018f6d2e-1b7f-7cc1-9f31-3f6b8a2e4c5d");
 
     private final JwtService jwtService = new JwtService(SECRET, Duration.ofHours(1));
     private final JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtService);
@@ -35,14 +37,14 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void authenticatesRequestWithValidToken() throws Exception {
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(7L, "user@example.com"));
+        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.issue(USER_ID, "user@example.com"));
 
         filter.doFilter(request, response, chain);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication).isNotNull();
         assertThat(authentication.isAuthenticated()).isTrue();
-        assertThat(authentication.getPrincipal()).isEqualTo(new CurrentUser(7L, "user@example.com"));
+        assertThat(authentication.getPrincipal()).isEqualTo(new CurrentUser(USER_ID, "user@example.com"));
         assertThat(authentication.getAuthorities()).extracting(GrantedAuthority::getAuthority)
                 .containsExactly("ROLE_USER");
         assertThat(chain.getRequest()).isSameAs(request);
@@ -50,7 +52,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void schemeNameIsCaseInsensitive() throws Exception {
-        request.addHeader(HttpHeaders.AUTHORIZATION, "bearer " + jwtService.issue(7L, "user@example.com"));
+        request.addHeader(HttpHeaders.AUTHORIZATION, "bearer " + jwtService.issue(USER_ID, "user@example.com"));
 
         filter.doFilter(request, response, chain);
 
@@ -59,7 +61,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void extraSpacesAroundTokenAreIgnored() throws Exception {
-        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer    " + jwtService.issue(7L, "user@example.com"));
+        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer    " + jwtService.issue(USER_ID, "user@example.com"));
 
         filter.doFilter(request, response, chain);
 

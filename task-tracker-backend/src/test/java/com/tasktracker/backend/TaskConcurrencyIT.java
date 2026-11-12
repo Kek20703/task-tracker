@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -54,14 +55,14 @@ class TaskConcurrencyIT {
 
     private final ExecutorService pool = Executors.newFixedThreadPool(2);
 
-    private Long userId;
-    private Long taskId;
+    private UUID userId;
+    private UUID taskId;
 
     @BeforeEach
     void setUp() {
         taskRepository.deleteAll();
         userRepository.deleteAll();
-        userId = userRepository.saveAndFlush(new User("alice@email.com", "hash")).getId();
+        userId = userRepository.save(new User("alice@email.com", "hash")).getId();
         taskId = taskService.create(userId, new TaskCreateRequest("Original", null)).id();
     }
 
@@ -73,7 +74,10 @@ class TaskConcurrencyIT {
     @Test
     void concurrentAutosavesDoNotOverwriteEachOther() throws Exception {
         // Пользователь меняет заголовок и сразу щёлкает чекбокс: два PATCH почти одновременно.
-        Future<?> first = holdLockedTask(task -> task.rename("Renamed by first request"));
+        Future<?> first = holdLockedTask(task -> {
+            task.rename("Renamed by first request");
+            taskRepository.save(task);
+        });
 
         Future<TaskResponse> second = pool.submit(
                 () -> taskService.update(userId, taskId, new TaskUpdateRequest(null, null, "DONE")));
@@ -121,7 +125,6 @@ class TaskConcurrencyIT {
         Future<?> future = pool.submit(() -> transactionTemplate.executeWithoutResult(status -> {
             Task task = taskRepository.findForUpdateByIdAndUserId(taskId, userId).orElseThrow();
             action.accept(task);
-            taskRepository.flush();
             locked.countDown();
             sleep(HOLD);
         }));

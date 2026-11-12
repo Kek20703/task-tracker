@@ -1,52 +1,40 @@
 package com.tasktracker.backend.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import org.hibernate.annotations.Generated;
-import org.hibernate.generator.EventType;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
+import java.util.UUID;
 
-@Entity
-@Table(name = "tasks")
-public class Task {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Table("tasks")
+public class Task extends UuidIdentified {
 
     /** Владелец. Хранится как id, а не связь с User: задаче не нужно загружать пользователя. */
-    @Column(name = "user_id", nullable = false, updatable = false)
-    private Long userId;
+    @Column("user_id")
+    private UUID userId;
 
-    @Column(nullable = false, length = 255)
+    @Column("title")
     private String title;
 
-    @Column(nullable = false, length = 10000)
+    @Column("description")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
+    @Column("status")
     private TaskStatus status;
 
-    @Column(name = "completed_at")
+    @Column("completed_at")
     private Instant completedAt;
 
-    /** Заполняется базой при вставке и сразу перечитывается. */
-    @Generated(event = EventType.INSERT)
-    @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
+    /** Заполняется аудитом Spring Data JDBC при вставке. */
+    @CreatedDate
+    @Column("created_at")
     private Instant createdAt;
 
     protected Task() {
     }
 
-    public Task(Long userId, String title, String description) {
+    public Task(UUID userId, String title, String description) {
         this.userId = userId;
         this.title = title;
         this.description = description;
@@ -73,11 +61,7 @@ public class Task {
         completedAt = newStatus == TaskStatus.DONE ? now : null;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public Long getUserId() {
+    public UUID getUserId() {
         return userId;
     }
 

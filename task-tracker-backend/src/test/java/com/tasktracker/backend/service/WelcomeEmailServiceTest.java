@@ -11,6 +11,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -27,7 +28,7 @@ class WelcomeEmailServiceTest {
     @SuppressWarnings("unchecked")
     private final KafkaTemplate<Object, Object> kafkaTemplate = mock(KafkaTemplate.class);
     private final WelcomeEmailService service = new WelcomeEmailService(kafkaTemplate);
-    private final UserResponse user = new UserResponse(42L, "user@example.com");
+    private final UserResponse user = new UserResponse(UUID.randomUUID(), "user@example.com");
 
     @Test
     void sendsWelcomeEmailWithEmailAsKey() {

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -32,7 +33,7 @@ public class UserService {
         }
         User user = new User(email, passwordEncoder.encode(request.password()));
         try {
-            user = userRepository.saveAndFlush(user);
+            user = userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
             // Два одновременных запроса с одним email: проверку выше прошли оба,
             // но уникальный индекс в БД пропустил только один.
@@ -45,12 +46,12 @@ public class UserService {
      * Пользователь по id из токена. Если его уже удалили, токен больше ничего не значит.
      * Все запросы «от имени текущего пользователя» должны начинаться с этой проверки.
      */
-    public UserResponse getById(Long id) {
+    public UserResponse getById(UUID id) {
         return userRepository.findById(id).map(UserService::toResponse).orElseThrow(AccountNotFoundException::new);
     }
 
     /** Проверка без загрузки пользователя — для операций, которым нужен только сам факт его существования. */
-    public void requireExisting(Long id) {
+    public void requireExisting(UUID id) {
         if (!userRepository.existsById(id)) {
             throw new AccountNotFoundException();
         }
@@ -61,7 +62,7 @@ public class UserService {
         return userRepository.findByEmail(normalizeEmail(email)).map(UserService::toResponse);
     }
 
-    /** Данные для проверки пароля. Наружу из сервиса уходит запись, а не JPA-сущность. */
+    /** Данные для проверки пароля. Наружу из сервиса уходит запись, а не сущность. */
     public Optional<UserCredentials> findCredentialsByEmail(String email) {
         return userRepository.findByEmail(normalizeEmail(email))
                 .map(user -> new UserCredentials(user.getEmail(), user.getPassword()));

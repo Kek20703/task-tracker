@@ -23,10 +23,6 @@ spring:
   web:
     resources:
       add-mappings: false
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate
 
 server:
   port: 8080

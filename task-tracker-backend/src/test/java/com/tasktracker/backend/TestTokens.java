@@ -7,6 +7,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * Собирает токены вручную, в обход JwtService — чтобы проверять, как сервис относится к токенам,
@@ -18,14 +19,14 @@ public final class TestTokens {
     }
 
     /** Заготовка корректного токена: sub, email и срок действия через час. Подпись ставит {@link #sign}. */
-    public static JwtBuilder valid(Long userId, String email) {
+    public static JwtBuilder valid(UUID userId, String email) {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("email", email)
                 .expiration(Date.from(Instant.now().plusSeconds(3600)));
     }
 
-    public static JwtBuilder expired(Long userId, String email) {
+    public static JwtBuilder expired(UUID userId, String email) {
         return valid(userId, email).expiration(Date.from(Instant.now().minusSeconds(300)));
     }
 
