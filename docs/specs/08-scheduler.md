@@ -59,18 +59,18 @@
 
 ## Критерии готовности
 
-- [ ] Scheduler стартует без summarization/email-sender.
-- [ ] За предыдущий день выбираются нужные пользователи и задачи.
-- [ ] Отчёт запрашивается по Kafka RPC; при таймауте используется шаблон.
-- [ ] Письмо уходит в `EMAIL_SENDING_TASKS` с корректным JSON.
-- [ ] `ArchitectureTest`, тесты Postgres/Kafka, покрытие не ниже 70%.
-- [ ] Ручной запуск через `scheduler.run-on-startup=true` или тест.
+- [x] Scheduler стартует без summarization/email-sender.
+- [x] За предыдущий день выбираются нужные пользователи и задачи.
+- [x] Отчёт запрашивается по Kafka RPC; при таймауте используется шаблон.
+- [x] Письмо уходит в `EMAIL_SENDING_TASKS` с корректным JSON.
+- [x] `ArchitectureTest`, тесты Postgres/Kafka, покрытие не ниже 70%.
+- [x] Ручной запуск через `scheduler.run-on-startup=true` или тест.
 
 ## Проверки
 
-- [ ] `./gradlew check` в scheduler.
-- [ ] Интеграционный тест Postgres + Kafka.
-- [ ] Ручной прогон всей цепочки с summarization и email-sender.
+- [x] `./gradlew check` в scheduler.
+- [x] Интеграционный тест Postgres + Kafka.
+- [x] Ручной прогон всей цепочки с summarization и email-sender.
 
 ## Открытые вопросы
 
