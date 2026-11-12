@@ -12,6 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -85,8 +86,13 @@ public class TaskService {
 
     private static boolean violatesOwnerForeignKey(DataIntegrityViolationException e) {
         Throwable cause = e.getMostSpecificCause();
-        String message = cause.getMessage();
-        return message != null && message.toLowerCase(Locale.ROOT).contains(OWNER_FOREIGN_KEY);
+        if (!(cause instanceof SQLException sql)) {
+            return false;
+        }
+        String message = sql.getMessage();
+        return "23503".equals(sql.getSQLState())
+                && message != null
+                && message.toLowerCase(Locale.ROOT).contains(OWNER_FOREIGN_KEY);
     }
 
     /** Postgres хранит время с точностью до микросекунд — обрезаем сразу, чтобы ответ совпадал с базой. */

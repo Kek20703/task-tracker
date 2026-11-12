@@ -26,7 +26,7 @@ class TaskServiceTest {
     @Test
     void userDeletedBetweenCheckAndInsertMeansNoAccount() {
         when(taskRepository.save(any(Task.class))).thenThrow(
-                new DataIntegrityViolationException("fk", new SQLException("fk_tasks_user")));
+                new DataIntegrityViolationException("fk", new SQLException("fk_tasks_user", "23503")));
 
         assertThatThrownBy(() -> taskService.create(UUID.randomUUID(), request))
                 .isInstanceOf(AccountNotFoundException.class);
@@ -36,7 +36,7 @@ class TaskServiceTest {
     void otherDataErrorsAreNotMaskedAsMissingAccount() {
         // Например, битые данные, которые Postgres не принял. Такая ошибка не должна выглядеть как 401.
         when(taskRepository.save(any(Task.class))).thenThrow(
-                new DataIntegrityViolationException("data", new SQLException("bad data")));
+                new DataIntegrityViolationException("data", new SQLException("bad data", "22021")));
 
         assertThatThrownBy(() -> taskService.create(UUID.randomUUID(), request))
                 .isInstanceOf(DataIntegrityViolationException.class)
@@ -46,7 +46,7 @@ class TaskServiceTest {
     @Test
     void otherConstraintViolationsAreNotMaskedAsMissingAccount() {
         when(taskRepository.save(any(Task.class))).thenThrow(
-                new DataIntegrityViolationException("check", new SQLException("ck_tasks_status")));
+                new DataIntegrityViolationException("check", new SQLException("ck_tasks_status", "23514")));
 
         assertThatThrownBy(() -> taskService.create(UUID.randomUUID(), request))
                 .isInstanceOf(DataIntegrityViolationException.class);

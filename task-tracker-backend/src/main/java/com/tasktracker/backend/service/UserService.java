@@ -62,7 +62,7 @@ public class UserService {
         return userRepository.findByEmail(normalizeEmail(email)).map(UserService::toResponse);
     }
 
-    /** Данные для проверки пароля. Наружу из сервиса уходит запись, а не JPA-сущность. */
+    /** Данные для проверки пароля. Наружу из сервиса уходит запись, а не сущность. */
     public Optional<UserCredentials> findCredentialsByEmail(String email) {
         return userRepository.findByEmail(normalizeEmail(email))
                 .map(user -> new UserCredentials(user.getEmail(), user.getPassword()));

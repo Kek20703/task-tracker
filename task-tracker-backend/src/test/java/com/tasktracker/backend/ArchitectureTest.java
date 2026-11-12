@@ -66,7 +66,7 @@ class ArchitectureTest {
     static final ArchRule only_services_and_repositories_use_entities = noClasses()
             .that().resideOutsideOfPackages(SERVICE, REPOSITORY, ENTITY)
             .should().dependOnClassesThat().resideInAPackage(ENTITY)
-            .because("JPA-сущности не выходят из сервисного слоя: контроллеры, security и config получают DTO");
+            .because("сущности не выходят за пределы сервисного и репозиторного слоёв");
 
     @ArchTest
     static final ArchRule entities_are_independent = noClasses()
