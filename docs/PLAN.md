@@ -31,7 +31,7 @@
 | 6 | Приветственное письмо | [06-welcome-email.md](specs/06-welcome-email.md) | сделано | #16 |
 | 7 | Summarization-сервис | [07-summarization.md](specs/07-summarization.md) | сделано | #25 |
 | 8 | Scheduler | [08-scheduler.md](specs/08-scheduler.md) | сделано | #27 |
-| 9 | Docker-образы, CI/CD, деплой | [09-deploy.md](specs/09-deploy.md) | в работе (feature/deploy) | |
+| 9 | Docker-образы, CI/CD, деплой | [09-deploy.md](specs/09-deploy.md) | сделано | #29 |
 
 Этапы 1–4 выпущены в `master` (#5, #8). По правилу из CLAUDE.md PR `dev` → `master` открывается
 после каждого завершённого этапа.
