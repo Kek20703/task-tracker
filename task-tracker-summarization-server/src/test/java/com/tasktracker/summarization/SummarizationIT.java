@@ -62,6 +62,7 @@ class SummarizationIT {
         ConsumerRecord<String, SummarizationResponse> record = readResponse();
 
         assertThat(record.key()).isEqualTo(request.requestId().toString());
+        assertThat(record.headers().lastHeader("__TypeId__")).isNull();
         assertThat(record.value().requestId()).isEqualTo(request.requestId());
         assertThat(record.value().usedLlm()).isFalse();
         assertThat(record.value().report()).contains("Всего задач: 2");

@@ -115,6 +115,8 @@
 - **Стек:** Java 17, Spring Boot 4.1, Gradle, Postgres 18, Kafka 4 (KRaft), Liquibase с XML.
 - **Persistence:** Spring Data JDBC без JPA/Hibernate; первичные ключи — UUIDv7, новая запись
   отличается по `@Version`, `created_at` заполняется аудитом Spring Data JDBC.
+- **Summarization:** Kafka RPC `SUMMARIZATION_REQUESTS` → `SUMMARIZATION_RESPONSES`; LLM —
+  OpenAI-совместимый HTTP, без ключа заглушка; история отчётов — в базе `summarization`.
 - **Фронтенда нет:** только REST API и `.http`-коллекция. SPA — возможный отдельный этап после девятого.
 - **Swagger UI** (springdoc) на `/swagger-ui.html` — для ручной проверки API, открыт без авторизации,
   как и описание `/v3/api-docs`. Выключается переменной `SWAGGER_ENABLED=false`; перед деплоем

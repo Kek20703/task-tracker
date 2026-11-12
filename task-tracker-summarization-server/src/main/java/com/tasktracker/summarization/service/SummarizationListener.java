@@ -28,6 +28,10 @@ public class SummarizationListener {
 
     @KafkaListener(topics = "${summarization.requests-topic}")
     public void onRequest(SummarizationRequest request) {
+        if (request == null || request.requestId() == null) {
+            log.warn("Ignoring summarization request without requestId");
+            return;
+        }
         SummarizationResponse response;
         try {
             response = summarizationService.summarize(request);
@@ -36,12 +40,16 @@ public class SummarizationListener {
             response = new SummarizationResponse(
                     request.requestId(), "Не удалось подготовить отчёт.", false);
         }
-        kafkaTemplate.send(responsesTopic, request.requestId().toString(), response)
-                .whenComplete((result, error) -> {
-                    if (error != null) {
-                        log.warn("Failed to send summarization response for request {}",
-                                request.requestId(), error);
-                    }
-                });
+        try {
+            kafkaTemplate.send(responsesTopic, request.requestId().toString(), response)
+                    .whenComplete((result, error) -> {
+                        if (error != null) {
+                            log.warn("Failed to send summarization response for request {}",
+                                    request.requestId(), error);
+                        }
+                    });
+        } catch (RuntimeException e) {
+            log.warn("Failed to send summarization response for request {}", request.requestId(), e);
+        }
     }
 }

@@ -60,6 +60,25 @@ class SummarizationListenerTest {
         assertThat(response.requestId()).isEqualTo(request.requestId());
     }
 
+    @Test
+    void ignoresRequestWithoutRequestId() {
+        listener.onRequest(null);
+
+        org.mockito.Mockito.verifyNoInteractions(service, kafkaTemplate);
+    }
+
+    @Test
+    void synchronousSendFailureDoesNotEscape() {
+        SummarizationRequest request = request();
+        when(service.summarize(request))
+                .thenReturn(new SummarizationResponse(request.requestId(), "Отчёт", false));
+        when(kafkaTemplate.send(eq("SUMMARIZATION_RESPONSES"), eq(request.requestId().toString()), any()))
+                .thenThrow(new org.apache.kafka.common.KafkaException("down"));
+
+        org.assertj.core.api.Assertions.assertThatCode(() -> listener.onRequest(request))
+                .doesNotThrowAnyException();
+    }
+
     private static SummarizationRequest request() {
         return new SummarizationRequest(
                 UUID.randomUUID(), UUID.randomUUID(),

@@ -42,6 +42,12 @@ class ArchitectureTest {
             .because("к репозиториям ходят только сервисы");
 
     @ArchTest
+    static final ArchRule nobody_depends_on_controllers = noClasses()
+            .that().resideOutsideOfPackage(CONTROLLER)
+            .should().dependOnClassesThat().resideInAPackage(CONTROLLER)
+            .because("контроллеры — верхний слой");
+
+    @ArchTest
     static final ArchRule repositories_do_not_depend_on_upper_layers = noClasses()
             .that().resideInAPackage(REPOSITORY)
             .should().dependOnClassesThat().resideInAnyPackage(CONTROLLER, SERVICE, DTO, CONFIG, SECURITY)
@@ -64,7 +70,7 @@ class ArchitectureTest {
     static final ArchRule dto_are_plain_data = noClasses()
             .that().resideInAPackage(DTO)
             .should().dependOnClassesThat().resideInAnyPackage(
-                    CONTROLLER, SERVICE, REPOSITORY, ENTITY, VALIDATION, CONFIG, SECURITY)
+                    CONTROLLER, SERVICE, REPOSITORY, ENTITY, EXCEPTION, VALIDATION, CONFIG, SECURITY)
             .because("DTO — простые данные без зависимостей от слоёв");
 
     @ArchTest
@@ -89,6 +95,7 @@ class ArchitectureTest {
     @ArchTest
     static final ArchRule repositories_live_in_repository_package = classes()
             .that().areAssignableTo("org.springframework.data.repository.Repository")
+            .or().areAnnotatedWith(org.springframework.stereotype.Repository.class)
             .should().resideInAPackage(REPOSITORY)
             .andShould().haveSimpleNameEndingWith("Repository")
             .allowEmptyShould(true);

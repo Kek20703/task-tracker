@@ -56,6 +56,13 @@ OpenAI-совместимый LLM API и отвечает в топик отве
 - Системный промпт задаёт формат: краткий отчёт, что сделано, что осталось, без выдуманных фактов.
 - Ошибка, таймаут или пустой ответ → шаблонный отчёт; `usedLlm=false`, письмо не теряется.
 
+## Конфигурация
+
+- `KAFKA_BOOTSTRAP_SERVERS`, `POSTGRES_*`, `SUMMARIZATION_DB` — подключение к Kafka и Postgres.
+- `SUMMARIZATION_REQUESTS_TOPIC`, `SUMMARIZATION_RESPONSES_TOPIC` — имена топиков.
+- `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_TIMEOUT` — параметры LLM.
+- Без `LLM_API_KEY` или `LLM_BASE_URL` работает заглушка.
+
 ## Данные
 
 - База `summarization` в том же Postgres. На свежем томе её создаёт init-скрипт compose;
