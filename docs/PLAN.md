@@ -29,7 +29,7 @@
 | 4 | Backend: задачи | — | сделано | #6 |
 | 5 | Email sender | — | сделано | #9 |
 | 6 | Приветственное письмо | [06-welcome-email.md](specs/06-welcome-email.md) | сделано | #16 |
-| 7 | Summarization-сервис | — | — | |
+| 7 | Summarization-сервис | [07-summarization.md](specs/07-summarization.md) | в работе (feature/summarization) | |
 | 8 | Scheduler | — | — | |
 | 9 | Docker-образы, CI/CD, деплой | — | — | |
 
@@ -71,6 +71,8 @@
 тестом с обеих сторон.
 
 ### Этап 7. Summarization-сервис
+
+Полная постановка — в [specs/07-summarization.md](specs/07-summarization.md).
 
 - **Сервис:** новый `task-tracker-summarization-server`.
 - **Kafka RPC:** получает запрос с задачами пользователя за период, отвечает отчётом в топик ответов.
