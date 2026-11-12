@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="001-create-summarization-requests" author="Kek20703">
+        <createTable tableName="summarization_requests">
+            <column name="id" type="uuid" defaultValueComputed="uuidv7()">
+                <constraints primaryKey="true" primaryKeyName="pk_summarization_requests"/>
+            </column>
+            <column name="request_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="period_from" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="period_to" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_count" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="report" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="used_llm" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="bigint" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="summarization_requests" indexName="uq_summarization_requests_request_id" unique="true">
+            <column name="request_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

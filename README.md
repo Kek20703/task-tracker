@@ -94,6 +94,31 @@ docker exec -i task-tracker-kafka /opt/kafka/bin/kafka-console-producer.sh \
 письмо в топик `EMAIL_SENDING_TASKS.DLT` (число попыток и пауза — `EMAIL_RETRY_MAX_ATTEMPTS`,
 `EMAIL_RETRY_INTERVAL_MS`).
 
+## Запуск summarization-server из исходников
+
+Сервис читает запросы из `SUMMARIZATION_REQUESTS`, готовит отчёт через LLM и отвечает в
+`SUMMARIZATION_RESPONSES`. Без `LLM_API_KEY` работает заглушка, поэтому цепочку можно проверить
+локально без внешнего API.
+
+Нужна отдельная база `summarization`. На свежем томе compose её создаёт init-скрипт. Если том уже
+существовал, создайте один раз вручную:
+
+```bash
+docker exec -it task-tracker-postgres \
+  psql -U task_tracker -d postgres -c "CREATE DATABASE summarization OWNER task_tracker;"
+```
+
+```bash
+cd task-tracker-summarization-server
+./gradlew bootRun   # слушает Kafka и отвечает в топик ответов
+./gradlew test      # Kafka и Postgres в Testcontainers, нужен Docker
+./gradlew check     # тесты + покрытие JaCoCo
+```
+
+Настройки: `KAFKA_BOOTSTRAP_SERVERS`, `POSTGRES_*`, `SUMMARIZATION_DB`,
+`SUMMARIZATION_REQUESTS_TOPIC`, `SUMMARIZATION_RESPONSES_TOPIC`, `LLM_BASE_URL`, `LLM_API_KEY`,
+`LLM_MODEL`, `LLM_TIMEOUT`. При ошибке или таймауте LLM сервис отвечает шаблонным отчётом.
+
 ## Стек
 
 Java 17, Spring Boot, Gradle, Postgres, Liquibase, Kafka, Docker, GitHub Actions.

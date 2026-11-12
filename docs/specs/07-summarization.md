@@ -1,0 +1,97 @@
+# Этап 7. Summarization-сервис
+
+> Статус постановки: `утверждена`. Дата утверждения: 2026-11-12. Ветка: `feature/summarization`.
+> После утверждения изменения — только отдельным решением.
+
+## Цель
+
+Новый сервис получает по Kafka запрос с задачами пользователя за период, готовит отчёт через
+OpenAI-совместимый LLM API и отвечает в топик ответов. Без ключа LLM работает заглушка, чтобы
+локальная цепочка была проверяемой.
+
+## Границы
+
+Входит:
+
+- новый Gradle-проект `task-tracker-summarization-server`;
+- Kafka RPC: запросы → отчёт → ответ;
+- прямой HTTP-вызов LLM без SDK, настройки из окружения;
+- режим-заглушка без ключа и шаблонный отчёт при сбое/таймауте LLM;
+- своя база `summarization`, Liquibase-миграция и история отчётов;
+- свой `ArchitectureTest`, тесты с Kafka и Postgres в Testcontainers.
+
+Не входит:
+
+- scheduler и выбор пользователей — этап 8;
+- отправка писем — остаётся email-sender;
+- хранение задач — backend остаётся владельцем схемы;
+- стриминг ответа LLM и сложный промпт-инжиниринг.
+
+## Контракты Kafka
+
+- **Запрос:** `SUMMARIZATION_REQUESTS`.
+  ```json
+  {
+    "requestId": "uuid",
+    "userId": "uuid",
+    "from": "2026-11-11T00:00:00Z",
+    "to": "2026-11-12T00:00:00Z",
+    "tasks": [
+      {"title": "...", "status": "DONE", "completedAt": "...", "createdAt": "..."}
+    ]
+  }
+  ```
+- **Ответ:** `SUMMARIZATION_RESPONSES`.
+  ```json
+  {"requestId": "uuid", "report": "...", "usedLlm": true}
+  ```
+- JSON без заголовков типа. DTO продублирован в scheduler; формат проверяется тестом.
+- `requestId` — корреляция запроса и ответа, генерирует scheduler.
+
+## LLM
+
+- `POST {LLM_BASE_URL}/chat/completions`, модель `LLM_MODEL`.
+- Ключ `LLM_API_KEY`; если пуст — заглушка.
+- Таймаут `LLM_TIMEOUT`, по умолчанию 10 секунд.
+- Системный промпт задаёт формат: краткий отчёт, что сделано, что осталось, без выдуманных фактов.
+- Ошибка, таймаут или пустой ответ → шаблонный отчёт; `usedLlm=false`, письмо не теряется.
+
+## Конфигурация
+
+- `KAFKA_BOOTSTRAP_SERVERS`, `POSTGRES_*`, `SUMMARIZATION_DB` — подключение к Kafka и Postgres.
+- `SUMMARIZATION_REQUESTS_TOPIC`, `SUMMARIZATION_RESPONSES_TOPIC` — имена топиков.
+- `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`, `LLM_TIMEOUT` — параметры LLM.
+- Без `LLM_API_KEY` или `LLM_BASE_URL` работает заглушка.
+
+## Данные
+
+- База `summarization` в том же Postgres. На свежем томе её создаёт init-скрипт compose;
+  на существующем — один раз вручную, инструкция в README.
+- Таблица `summarization_requests`: `id uuid pk`, `request_id uuid unique`, `user_id uuid`,
+  `period_from`, `period_to`, `task_count`, `report`, `used_llm`, `created_at`, `version`.
+- Миграция `001-create-summarization-requests.xml`.
+
+## Поведение при сбоях
+
+- LLM недоступен/таймаут — шаблонный отчёт, ответ в Kafka всё равно уходит.
+- Ошибка записи истории не должна блокировать ответ: логируем и отвечаем.
+- Ошибка отправки ответа — лог; входящее сообщение не должно зацикливаться бесконечно.
+
+## Критерии готовности
+
+- [x] Сервис стартует без LLM-ключа и отвечает шаблонным отчётом.
+- [x] С ключом и настроенным URL вызывает LLM и возвращает его текст.
+- [x] Запрос и ответ проходят через Kafka; `requestId` совпадает.
+- [x] История отчёта сохраняется в `summarization_requests`.
+- [x] `ArchitectureTest`, тесты Kafka/Postgres, покрытие не ниже 70%.
+- [x] `docker compose` создаёт базу `summarization` на свежем томе; README описывает ручное создание.
+
+## Проверки
+
+- [x] `./gradlew check` в новом сервисе.
+- [x] Интеграционный тест: Kafka + Postgres в Testcontainers, stub-отчёт.
+- [x] Ручной прогон: отправить запрос в `SUMMARIZATION_REQUESTS`, увидеть ответ.
+
+## Открытые вопросы
+
+Нет.
