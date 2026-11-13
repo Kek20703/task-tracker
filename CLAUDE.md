@@ -13,8 +13,9 @@
 ## Структура
 
 Монорепозиторий: четыре независимых Gradle-проекта по папкам (`task-tracker-backend`,
-`task-tracker-email-sender`, `task-tracker-summarization-server`, `task-tracker-scheduler`)
-и общий `docker-compose.yml` в корне. Фронтенда нет — вместо него `.http`-коллекция.
+`task-tracker-email-sender`, `task-tracker-summarization-server`, `task-tracker-scheduler`),
+SPA `task-tracker-frontend` на React + Vite и общий `docker-compose.yml` в корне.
+REST API и `.http`-коллекция остаются для отладки.
 
 ## Сборка
 
