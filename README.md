@@ -11,6 +11,7 @@
 | `task-tracker-email-sender` | Читает топик `EMAIL_SENDING_TASKS` и отправляет письма |
 | `task-tracker-summarization-server` | Генерирует отчёт по задачам через LLM (Kafka RPC) |
 | `task-tracker-scheduler` | Раз в сутки собирает отчёты и ставит письма в очередь |
+| `task-tracker-frontend` | SPA для ручной проверки API: вход, задачи, статусы. Порт 5173 |
 
 Инфраструктура: Postgres, Kafka. Всё запускается через Docker Compose.
 
@@ -165,6 +166,19 @@ docker exec -it task-tracker-postgres \
 выполните `docker compose -f docker-compose.prod.yml pull` вместо `--build`. Для публикации
 образов в GitHub Actions нужны секреты `DOCKERHUB_USERNAME` и `DOCKERHUB_TOKEN`.
 Swagger на сервере по умолчанию выключен (`SWAGGER_ENABLED=false`).
+
+## Запуск frontend
+
+Нужен Node.js 20+ и запущенный backend на `localhost:8080`.
+
+```bash
+cd task-tracker-frontend
+npm install
+npm run dev
+```
+
+Открыть http://localhost:5173. Vite проксирует `/api` на backend, поэтому CORS не нужен.
+`npm run build` проверяет TypeScript и собирает статику в `dist/`.
 
 ## Стек
 

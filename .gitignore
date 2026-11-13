@@ -15,6 +15,10 @@ out/
 *.env.local
 http-client.private.env.json
 
+# Frontend
+task-tracker-frontend/node_modules/
+task-tracker-frontend/dist/
+
 # ОС
 .DS_Store
 Thumbs.db
