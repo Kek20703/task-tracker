@@ -30,12 +30,12 @@ function formatDate(value: string | null): string {
   }).format(new Date(value))
 }
 
-function AuthScreen({ onAuth }: { onAuth: (auth: Auth) => void }) {
+function AuthScreen({ onAuth, notice }: { onAuth: (auth: Auth) => void; notice?: string }) {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(notice ?? '')
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -127,8 +127,8 @@ function App() {
   const [auth, setAuth] = useState<Auth | null>(() => loadAuth())
   const [tasks, setTasks] = useState<Task[]>([])
   const [checking, setChecking] = useState(Boolean(auth))
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [authNotice, setAuthNotice] = useState('')
   const [filter, setFilter] = useState<TaskFilter>('all')
 
   const [title, setTitle] = useState('')
@@ -144,7 +144,8 @@ function App() {
       clearAuth()
       setAuth(null)
       setTasks([])
-      setError('Сессия истекла — войдите снова.')
+      setError('')
+      setAuthNotice('Сессия истекла — войдите снова.')
       return
     }
     setError(e instanceof Error ? e.message : 'Что-то пошло не так')
@@ -196,6 +197,7 @@ function App() {
   function onAuth(next: Auth) {
     saveAuth(next)
     setAuth(next)
+    setAuthNotice('')
     setError('')
   }
 
@@ -213,7 +215,7 @@ function App() {
     setError('')
     try {
       const created = await createTask(auth.token, title.trim(), description.trim())
-      setTasks((current) => [created, ...current])
+      setTasks((current) => [...current, created])
       setTitle('')
       setDescription('')
     } catch (e) {
@@ -269,7 +271,7 @@ function App() {
     }
   }
 
-  if (!auth) return <AuthScreen onAuth={onAuth} />
+  if (!auth) return <AuthScreen onAuth={onAuth} notice={authNotice} />
   if (checking) {
     return (
       <div className="splash">
@@ -362,7 +364,6 @@ function App() {
                 </button>
               ))}
             </div>
-            {loading && <span className="muted">Обновляем…</span>}
           </div>
 
           <div className="tasks">

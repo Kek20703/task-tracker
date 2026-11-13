@@ -33,9 +33,20 @@ export function clearAuth(): void {
 async function parseResponse<T>(response: Response): Promise<T> {
   if (response.status === 204) return undefined as T
   const text = await response.text()
-  const data = text ? JSON.parse(text) : null
+  let data: unknown = null
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      throw new ApiError(
+        response.ok ? 'Сервер вернул некорректный ответ' : text,
+        response.status,
+      )
+    }
+  }
   if (!response.ok) {
-    throw new ApiError(data?.message ?? `Ошибка ${response.status}`, response.status)
+    const message = (data as { message?: string } | null)?.message
+    throw new ApiError(message ?? `Ошибка ${response.status}`, response.status)
   }
   return data as T
 }
