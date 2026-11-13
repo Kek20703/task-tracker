@@ -32,6 +32,7 @@
 | 7 | Summarization-сервис | [07-summarization.md](specs/07-summarization.md) | сделано | #25 |
 | 8 | Scheduler | [08-scheduler.md](specs/08-scheduler.md) | сделано | #27 |
 | 9 | Docker-образы, CI/CD, деплой | [09-deploy.md](specs/09-deploy.md) | сделано | #29 |
+| 10 | Frontend | [10-frontend.md](specs/10-frontend.md) | сделано | #31 |
 
 Этапы 1–4 выпущены в `master` (#5, #8). По правилу из CLAUDE.md PR `dev` → `master` открывается
 после каждого завершённого этапа.
@@ -113,15 +114,24 @@
   `http://$server_ip`, поэтому на сервере backend публикуется на 80-м порту (`80:8080`).
 - **Нужно от владельца:** аккаунт Docker Hub, доступы SMTP Unisender, сервер на Linux.
 
+### Этап 10. Frontend
+
+Полная постановка — в [specs/10-frontend.md](specs/10-frontend.md). Отдельный SPA на React + Vite +
+TypeScript для локальной проверки API: вход, регистрация, CRUD задач, фильтры. Vite проксирует
+`/api` на backend.
+
 ## Принятые решения
 
 - **Структура:** один репозиторий, четыре независимых Gradle-проекта по папкам, общий `docker-compose.yml`.
 - **Стек:** Java 17, Spring Boot 4.1, Gradle, Postgres 18, Kafka 4 (KRaft), Liquibase с XML.
 - **Persistence:** Spring Data JDBC без JPA/Hibernate; первичные ключи — UUIDv7, новая запись
   отличается по `@Version`, `created_at` заполняется аудитом Spring Data JDBC.
+- **Frontend:** React + Vite + TypeScript, отдельный проект; dev-прокси `/api` на backend,
+  токен в `localStorage`, деплой фронтенда пока не входит.
 - **Summarization:** Kafka RPC `SUMMARIZATION_REQUESTS` → `SUMMARIZATION_RESPONSES`; LLM —
   OpenAI-совместимый HTTP, без ключа заглушка; история отчётов — в базе `summarization`.
-- **Фронтенда нет:** только REST API и `.http`-коллекция. SPA — возможный отдельный этап после девятого.
+- **Frontend:** отдельный SPA `task-tracker-frontend` на React + Vite + TypeScript; REST API и
+  `.http`-коллекция остаются для отладки. Деплой фронтенда пока не входит.
 - **Swagger UI** (springdoc) на `/swagger-ui.html` — для ручной проверки API, открыт без авторизации,
   как и описание `/v3/api-docs`. Выключается переменной `SWAGGER_ENABLED=false`; перед деплоем
   (этап 9) решить, оставлять ли его включённым на сервере.
